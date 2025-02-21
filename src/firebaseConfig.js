@@ -4,13 +4,12 @@ import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC1zgf6NErtbMGzu0SHSkzD1QDxQW97UaQ",
-    authDomain: "rfid-attendance-system.firebaseapp.com",
+    authDomain: "rfid-attendance-system-e2420.firebaseapp.com",
     projectId: "rfid-attendance-system-e2420",
-    storageBucket: "rfid-attendance-system.appspot.com",
-    messagingSenderId: "1003624904239",
-    appId: "1:1003624904239:web:0b0a3e0e0b0a3e0e0b0a3e0e",
-    measurementId: "G-9E7WQ3XW1B"
-};
+    storageBucket: "rfid-attendance-system-e2420.firebasestorage.app",
+    messagingSenderId: "463927715418",
+    appId: "1:463927715418:web:469a2af17d7f602ea91a63"
+  };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);

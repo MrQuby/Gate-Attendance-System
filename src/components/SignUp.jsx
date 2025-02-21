@@ -49,7 +49,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-user h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-user text-blue-500"></i>
                 </div>
                 <input
                   id="firstName"
@@ -71,7 +71,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-user h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-user text-blue-500"></i>
                 </div>
                 <input
                   id="lastName"
@@ -93,7 +93,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-id-card h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-id-card text-blue-500"></i>
                 </div>
                 <input
                   id="idNumber"
@@ -115,7 +115,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-envelope h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-envelope text-blue-500"></i>
                 </div>
                 <input
                   id="email"
@@ -137,7 +137,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-lock h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-lock text-blue-500"></i>
                 </div>
                 <input
                   id="password"
@@ -154,7 +154,7 @@ const SignUp = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <i className={`fas ${showPassword ? 'fa-eye' : 'fa-eye-slash'} h-5 w-5`}></i>
+                  <i className={`fas ${showPassword ? 'fa-eye' : 'fa-eye-slash'} h-4 w-5`}></i>
                 </button>
               </div>
             </div>
@@ -166,7 +166,7 @@ const SignUp = () => {
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-lock h-5 w-5 text-blue-500"></i>
+                  <i className="fas fa-lock text-blue-500"></i>
                 </div>
                 <input
                   id="confirmPassword"
@@ -183,7 +183,7 @@ const SignUp = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <i className={`fas ${showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'} h-5 w-5`}></i>
+                  <i className={`fas ${showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'} h-4 w-5`}></i>
                 </button>
               </div>
             </div>
