@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -12,6 +16,7 @@ const SignUp = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,16 +26,54 @@ const SignUp = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement signup logic
+    setError('');
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      // Store additional user data in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        idNumber: formData.idNumber,
+        email: formData.email,
+        createdAt: new Date().toISOString()
+      });
+
+      // Navigate to login page after successful registration
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during registration:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setError('Email address is already registered');
+      } else if (error.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters');
+      } else if (error.code === 'auth/configuration-not-found') {
+        setError('Authentication service is not properly configured. Please try again later.');
+      } else {
+        setError('An error occurred during registration. Please try again.');
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full flex bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Left side - Form */}
-        <div className="w-full md:w-1/2 px-8 py-12">
+        <div className="w-full md:w-3/4 px-8 py-8">
           <div className="text-center">
             <div className="flex justify-center text-blue-600">
               <i className="fas fa-graduation-cap text-4xl"></i>
@@ -41,53 +84,56 @@ const SignUp = () => {
             </h2>
           </div>
 
-          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-            {/* First Name */}
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                First Name
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-user text-blue-500"></i>
+          <form className="mt-6" onSubmit={handleSubmit}>
+            {/* Name Fields Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+              {/* First Name */}
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                  First Name
+                </label>
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                    <i className="fas fa-user text-blue-500"></i>
+                  </div>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="appearance-none rounded-lg relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="First name"
+                  />
                 </div>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="appearance-none rounded-lg relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter your first name"
-                />
               </div>
-            </div>
 
-            {/* Last Name */}
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                Last Name
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <i className="fas fa-user text-blue-500"></i>
+              {/* Last Name */}
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                  Last Name
+                </label>
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                    <i className="fas fa-user text-blue-500"></i>
+                  </div>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="appearance-none rounded-lg relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Last name"
+                  />
                 </div>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="appearance-none rounded-lg relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter your last name"
-                />
               </div>
             </div>
 
             {/* ID Number */}
-            <div>
+            <div className="mb-3">
               <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700">
                 ID Number
               </label>
@@ -109,7 +155,7 @@ const SignUp = () => {
             </div>
 
             {/* Email */}
-            <div>
+            <div className="mb-3">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -131,7 +177,7 @@ const SignUp = () => {
             </div>
 
             {/* Password */}
-            <div>
+            <div className="mb-3">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
@@ -160,7 +206,7 @@ const SignUp = () => {
             </div>
 
             {/* Confirm Password */}
-            <div>
+            <div className="mb-3">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm Password
               </label>
@@ -188,14 +234,18 @@ const SignUp = () => {
               </div>
             </div>
 
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-center">
+                {error}
+              </div>
+            )}
+
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
+                className="group relative w-full flex items-center justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-4"
               >
-                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                  <i className="fas fa-user-plus text-blue-500 group-hover:text-blue-400"></i>
-                </span>
+                <i className="fas fa-user-plus mr-2"></i>
                 SIGN UP
               </button>
             </div>

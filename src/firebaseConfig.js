@@ -3,13 +3,14 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC1zgf6NErtbMGzu0SHSkzD1QDxQW97UaQ",
-    authDomain: "rfid-attendance-system-e2420.firebaseapp.com",
-    projectId: "rfid-attendance-system-e2420",
-    storageBucket: "rfid-attendance-system-e2420.firebasestorage.app",
-    messagingSenderId: "463927715418",
-    appId: "1:463927715418:web:469a2af17d7f602ea91a63"
-  };
+  apiKey: "AIzaSyC_HMWFzpBME7PtTwqDaXOG3BHq0DRY1m0",
+  authDomain: "rfid-attendance-system-9510e.firebaseapp.com",
+  projectId: "rfid-attendance-system-9510e",
+  storageBucket: "rfid-attendance-system-9510e.firebasestorage.app",
+  messagingSenderId: "745646084466",
+  appId: "1:745646084466:web:b2a418da7356198f6d4deb",
+  measurementId: "G-R1BXJRVHBC"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
