@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
+import { auth, db } from '../../config/firebase';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -12,7 +12,8 @@ const SignUp = () => {
     idNumber: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'teacher'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,6 +51,7 @@ const SignUp = () => {
         lastName: formData.lastName,
         idNumber: formData.idNumber,
         email: formData.email,
+        role: formData.role,
         createdAt: new Date().toISOString()
       });
 
@@ -173,6 +175,26 @@ const SignUp = () => {
                   className="appearance-none rounded-lg relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Enter your email"
                 />
+              </div>
+            </div>
+
+            {/* Role */}
+            <div className="mb-3">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                Role
+              </label>
+              <div className="mt-1 relative">
+                <select
+                  id="role"
+                  name="role"
+                  required
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="appearance-none rounded-lg relative block w-full pl-3 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="teacher">Teacher</option>
+                  <option value="student">Student</option>
+                </select>
               </div>
             </div>
 

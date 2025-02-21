@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../config/firebase';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,14 +16,47 @@ const Login = () => {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, idNumber, password);
+      // First, query Firestore to find the user with the given ID number
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('idNumber', '==', idNumber));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setError('No user found with this ID number');
+        return;
+      }
+
+      // Get the email associated with the ID number
+      const userDoc = querySnapshot.docs[0];
+      const userEmail = userDoc.data().email;
+
+      // Sign in with email and password
+      const userCredential = await signInWithEmailAndPassword(auth, userEmail, password);
       
-      // Navigate to dashboard after successful login
-      navigate('/dashboard');
+      // Get the user's role from Firestore
+      const userRef = doc(db, 'users', userCredential.user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        // Redirect based on role
+        if (userData.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (userData.role === 'teacher') {
+          navigate('/dashboard');
+        } else {
+          // Handle other roles or invalid roles
+          setError('Invalid user role');
+          await signOut(auth); // Sign out
+        }
+      } else {
+        setError('User data not found');
+        await signOut(auth); // Sign out
+      }
     } catch (error) {
       console.error('Error during login:', error);
       if (error.code === 'auth/invalid-credential') {
-        setError('Invalid email or password');
+        setError('Invalid ID number or password');
       } else if (error.code === 'auth/configuration-not-found') {
         setError('Authentication service is not properly configured. Please try again later.');
       } else {
