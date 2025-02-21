@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AddStudentModal from '../../components/modals/AddStudentModal';
+import ViewStudentModal from '../../components/modals/ViewStudentModal';
 
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);
@@ -10,6 +11,8 @@ const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     fetchStudents();
@@ -75,6 +78,11 @@ const AdminStudents = () => {
     setSearchQuery('');
   };
 
+  const handleViewStudent = (student) => {
+    setSelectedStudent(student);
+    setIsViewModalOpen(true);
+  };
+
   const filteredStudents = students.filter(student => {
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -134,7 +142,7 @@ const AdminStudents = () => {
               </div>
               <button
                 onClick={handleReset}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
               >
                 Reset
               </button>
@@ -238,25 +246,25 @@ const AdminStudents = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {/* TODO: View student details */}}
-                            className="text-blue-600 hover:text-blue-900"
+                            onClick={() => handleViewStudent(student)}
+                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                             title="View"
                           >
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
                             onClick={() => {/* TODO: Edit student */}}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-lg transition duration-200"
                             title="Edit"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
                             onClick={() => handleDelete(student.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-lg transition duration-200"
                             title="Delete"
                           >
-                            <i className="fas fa-trash"></i>
+                            <i className="fas fa-trash-alt"></i>
                           </button>
                         </div>
                       </td>
@@ -277,6 +285,16 @@ const AdminStudents = () => {
           fetchStudents();
           setIsAddModalOpen(false);
         }}
+      />
+
+      {/* View Student Modal */}
+      <ViewStudentModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
       />
     </div>
   );
