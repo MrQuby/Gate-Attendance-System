@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import CourseModal from '../../components/modals/CourseModal';
+import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import { db } from '../../config/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
@@ -17,6 +18,11 @@ const AdminCourses = () => {
     description: ''
   });
   const [loading, setLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    courseId: null,
+    courseName: ''
+  });
 
   // Fetch courses from Firebase
   useEffect(() => {
@@ -84,16 +90,34 @@ const AdminCourses = () => {
   };
 
   const handleDelete = async (courseId) => {
-    if (window.confirm('Are you sure you want to delete this course?')) {
-      try {
-        await deleteDoc(doc(db, 'courses', courseId));
-        toast.success('Course deleted successfully');
-        fetchCourses();
-      } catch (error) {
-        console.error('Error deleting course:', error);
-        toast.error('Failed to delete course');
-      }
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, 'courses', courseId));
+      toast.success('Course deleted successfully');
+      fetchCourses();
+      setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      toast.error('Failed to delete course');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const openDeleteModal = (course) => {
+    setDeleteModal({
+      isOpen: true,
+      courseId: course.id,
+      courseName: course.courseName
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      courseId: null,
+      courseName: ''
+    });
   };
 
   const filteredCourses = courses.filter((course) => {
@@ -242,7 +266,7 @@ const AdminCourses = () => {
                         </button>
                         <button
                           className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-2 rounded-lg transition duration-200"
-                          onClick={() => handleDelete(course.id)}
+                          onClick={() => openDeleteModal(course)}
                         >
                           <i className="fas fa-trash fa-lg"></i>
                         </button>
@@ -262,6 +286,16 @@ const AdminCourses = () => {
             currentCourse={currentCourse}
             onSubmit={handleSubmit}
             onChange={handleInputChange}
+            loading={loading}
+          />
+
+          {/* Delete Confirmation Modal */}
+          <DeleteConfirmationModal
+            isOpen={deleteModal.isOpen}
+            onClose={closeDeleteModal}
+            onConfirm={() => handleDelete(deleteModal.courseId)}
+            title="Delete Course"
+            message={`Are you sure you want to delete "${deleteModal.courseName}"? This action cannot be undone.`}
             loading={loading}
           />
         </main>
