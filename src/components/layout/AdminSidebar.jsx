@@ -28,60 +28,60 @@ const AdminSidebar = () => {
         <nav className="space-y-2">
           <Link
             to="/admin/dashboard"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-              currentPath === '/admin/dashboard' ? 'bg-blue-600' : 'hover:bg-gray-700'
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath === '/admin/dashboard' ? 'bg-blue-600' : 'hover:bg-blue-600'
             }`}
           >
-            <i className="fas fa-th-large"></i>
-            <span>Dashboard</span>
+            <i className="fas fa-th-large w-6 text-center"></i>
+            <span className="ml-4">Dashboard</span>
           </Link>
 
           <Link
             to="/admin/students"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-              currentPath.startsWith('/admin/students') ? 'bg-blue-600' : 'hover:bg-gray-700'
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath.startsWith('/admin/students') ? 'bg-blue-600' : 'hover:bg-blue-600'
             }`}
           >
-            <i className="fas fa-user-graduate"></i>
-            <span>Student</span>
+            <i className="fas fa-user-graduate w-6 text-center"></i>
+            <span className="ml-4">Students</span>
           </Link>
 
           <Link
             to="/admin/teachers"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-              currentPath.startsWith('/admin/teachers') ? 'bg-blue-600' : 'hover:bg-gray-700'
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath.startsWith('/admin/teachers') ? 'bg-blue-600' : 'hover:bg-blue-600'
             }`}
           >
-            <i className="fas fa-chalkboard-teacher"></i>
-            <span>Teachers</span>
+            <i className="fas fa-chalkboard-teacher w-6 text-center"></i>
+            <span className="ml-4">Teachers</span>
           </Link>
 
           <Link
             to="/admin/courses"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-              currentPath.startsWith('/admin/courses') ? 'bg-blue-600' : 'hover:bg-gray-700'
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath.startsWith('/admin/courses') ? 'bg-blue-600' : 'hover:bg-blue-600'
             }`}
           >
-            <i className="fas fa-book"></i>
-            <span>Courses</span>
+            <i className="fas fa-book w-6 text-center"></i>
+            <span className="ml-4">Courses</span>
           </Link>
 
           <Link
             to="/admin/user-logs"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-              currentPath.startsWith('/admin/user-logs') ? 'bg-blue-600' : 'hover:bg-gray-700'
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath.startsWith('/admin/user-logs') ? 'bg-blue-600' : 'hover:bg-blue-600'
             }`}
           >
-            <i className="fas fa-history"></i>
-            <span>User Logs</span>
+            <i className="fas fa-history w-6 text-center"></i>
+            <span className="ml-4">User Logs</span>
           </Link>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 rounded-lg w-full text-left"
+            className="flex items-center px-4 py-3 hover:bg-blue-600 rounded-lg w-full text-left"
           >
-            <i className="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
+            <i className="fas fa-sign-out-alt w-6 text-center"></i>
+            <span className="ml-4">Logout</span>
           </button>
         </nav>
       </div>
