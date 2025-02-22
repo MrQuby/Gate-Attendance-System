@@ -1,48 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/layout/AdminSidebar';
+import CourseModal from '../../components/modals/CourseModal';
+import { db } from '../../config/firebase';
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 const AdminCourses = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourses, setSelectedCourses] = useState([]);
-  
-  // Sample data - replace with actual data from your backend
-  const courses = [
-    {
-      courseId: 'ACT',
-      courseName: 'Associate in Computer Technology',
-      description: 'A two-year course focused on IT and computer systems.',
-    },
-    {
-      courseId: 'BSBA',
-      courseName: 'Bachelor of Science in Business Administration',
-      description: 'A course covering various aspects of business administration.',
-    },
-    {
-      courseId: 'BSCS',
-      courseName: 'Bachelor of Science in Computer Science',
-      description: 'A four-year program on computing, algorithms, and new developments in the field.',
-    },
-    {
-      courseId: 'BSCRIM',
-      courseName: 'Bachelor of Science in Criminology',
-      description: 'A course focused on criminology and criminal justice.',
-    },
-    {
-      courseId: 'BSED',
-      courseName: 'Bachelor of Science in Education',
-      description: 'A course for students aiming to become educators.',
-    },
-    {
-      courseId: 'BSHM',
-      courseName: 'Bachelor of Science in Hospitality Management',
-      description: 'A course focused on hospitality and management.',
-    },
-    {
-      courseId: 'BSIT',
-      courseName: 'Bachelor of Science in Information Technology',
-      description: 'A four-year course focused on IT and computer systems.',
-    },
-  ];
+  const [courses, setCourses] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add', 'edit', 'view'
+  const [currentCourse, setCurrentCourse] = useState({
+    courseId: '',
+    courseName: '',
+    description: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Fetch courses from Firebase
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      const coursesCollection = collection(db, 'courses');
+      const coursesSnapshot = await getDocs(coursesCollection);
+      const coursesList = coursesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setCourses(coursesList);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      toast.error('Failed to fetch courses');
+    }
+  };
+
+  // Modal handlers
+  const openModal = (mode, course = null) => {
+    setModalMode(mode);
+    setCurrentCourse(course || { courseId: '', courseName: '', description: '' });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCurrentCourse({ courseId: '', courseName: '', description: '' });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentCourse(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // CRUD operations
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (modalMode === 'add') {
+        await addDoc(collection(db, 'courses'), currentCourse);
+        toast.success('Course added successfully');
+      } else if (modalMode === 'edit') {
+        const courseRef = doc(db, 'courses', currentCourse.id);
+        await updateDoc(courseRef, currentCourse);
+        toast.success('Course updated successfully');
+      }
+      
+      fetchCourses();
+      closeModal();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(modalMode === 'add' ? 'Failed to add course' : 'Failed to update course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await deleteDoc(doc(db, 'courses', courseId));
+        toast.success('Course deleted successfully');
+        fetchCourses();
+      } catch (error) {
+        console.error('Error deleting course:', error);
+        toast.error('Failed to delete course');
+      }
+    }
+  };
 
   const filteredCourses = courses.filter((course) => {
     const searchTerm = searchQuery.toLowerCase();
@@ -59,7 +111,7 @@ const AdminCourses = () => {
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedCourses(courses.map(course => course.courseId));
+      setSelectedCourses(courses.map(course => course.id));
     } else {
       setSelectedCourses([]);
     }
@@ -91,12 +143,12 @@ const AdminCourses = () => {
           <div className="flex justify-between items-center mb-6">
             <div className="flex gap-2">
               <button
+                onClick={() => openModal('add')}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
               >
                 <i className="fas fa-plus"></i>
                 Add Course
               </button>
-              
               <div className="relative">
                 <button
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -156,12 +208,12 @@ const AdminCourses = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredCourses.map((course) => (
-                  <tr key={course.courseId} className="hover:bg-gray-50">
+                  <tr key={course.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
-                        checked={selectedCourses.includes(course.courseId)}
-                        onChange={() => handleSelectCourse(course.courseId)}
+                        checked={selectedCourses.includes(course.id)}
+                        onChange={() => handleSelectCourse(course.id)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </td>
@@ -175,24 +227,43 @@ const AdminCourses = () => {
                       {course.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                        onClick={() => {/* TODO: View course */}}
-                      >
-                        <i className="fas fa-eye"></i>
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => {/* TODO: Delete course */}}
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          onClick={() => openModal('view', course)}
+                        >
+                          <i className="fas fa-eye fa-lg"></i>
+                        </button>
+                        <button
+                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          onClick={() => openModal('edit', course)}
+                        >
+                          <i className="fas fa-edit fa-lg"></i>
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          onClick={() => handleDelete(course.id)}
+                        >
+                          <i className="fas fa-trash fa-lg"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Course Modal */}
+          <CourseModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            mode={modalMode}
+            currentCourse={currentCourse}
+            onSubmit={handleSubmit}
+            onChange={handleInputChange}
+            loading={loading}
+          />
         </main>
       </div>
     </div>

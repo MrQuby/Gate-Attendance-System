@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/teacher/Dashboard';
@@ -14,6 +16,7 @@ import './App.css';
 function App() {
   return (
     <Router>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         {/* Teacher Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
