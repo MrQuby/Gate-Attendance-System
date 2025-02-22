@@ -7,6 +7,8 @@ import Students from './pages/teacher/Students';
 import StudentDetails from './pages/teacher/StudentDetails';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminStudents from './pages/admin/AdminStudents';
+import AdminTeachers from './pages/admin/AdminTeachers';
+import AdminCourses from './pages/admin/AdminCourses';
 import './App.css';
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/students" element={<AdminStudents />} />
+        <Route path="/admin/teachers" element={<AdminTeachers />} />
+        <Route path="/admin/courses" element={<AdminCourses />} />
         
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
