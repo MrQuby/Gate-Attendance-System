@@ -59,15 +59,15 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform transition-all">
+      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2 transform transition-all">
         {/* Modal Header */}
-        <div className="flex justify-between items-center pb-6 border-b border-gray-200">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div>
-            <h3 className="text-2xl font-bold text-blue-900">
+            <h3 className="text-xl font-bold text-blue-900">
               {mode === 'add' ? 'Add New Teacher' : 
                mode === 'edit' ? 'Edit Teacher' : 'Teacher Details'}
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-0.5 text-sm text-gray-500">
               {mode === 'add' ? 'Create a new teacher account in the system' : 
                mode === 'edit' ? 'Modify existing teacher details' : 'View teacher information'}
             </p>
@@ -80,8 +80,8 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6">
-          <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="mt-4">
+          <div className="space-y-4">
             {/* Teacher ID Field */}
             <div className="grid grid-cols-1 gap-2">
               <label className="block text-sm font-semibold text-gray-700">
@@ -102,7 +102,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                     mode === 'view' 
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-3 transition-colors
+                  } border-gray-300 shadow-sm p-2.5 transition-colors
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                   required
                 />
@@ -129,7 +129,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                     mode === 'view' 
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-3 transition-colors
+                  } border-gray-300 shadow-sm p-2.5 transition-colors
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                   required
                 />
@@ -156,7 +156,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                     mode === 'view' 
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-3 transition-colors
+                  } border-gray-300 shadow-sm p-2.5 transition-colors
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                   required
                 />
@@ -183,7 +183,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                     mode === 'view' 
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-3 transition-colors
+                  } border-gray-300 shadow-sm p-2.5 transition-colors
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                   required
                 />
@@ -192,7 +192,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
           </div>
 
           {/* Modal Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-4 border-t border-gray-200">
             {mode !== 'view' ? (
               <div className="flex justify-end gap-3">
                 <button
