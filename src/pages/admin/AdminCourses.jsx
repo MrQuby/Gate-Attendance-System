@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 
 const AdminCourses = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCourses, setSelectedCourses] = useState([]);
   const [courses, setCourses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add', 'edit', 'view'
@@ -133,24 +132,6 @@ const AdminCourses = () => {
     setSearchQuery('');
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedCourses(courses.map(course => course.id));
-    } else {
-      setSelectedCourses([]);
-    }
-  };
-
-  const handleSelectCourse = (courseId) => {
-    setSelectedCourses(prev => {
-      if (prev.includes(courseId)) {
-        return prev.filter(id => id !== courseId);
-      } else {
-        return [...prev, courseId];
-      }
-    });
-  };
-
   return (
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
@@ -208,13 +189,8 @@ const AdminCourses = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedCourses.length === courses.length}
-                      onChange={handleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Course ID
@@ -231,15 +207,10 @@ const AdminCourses = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCourses.map((course) => (
+                {filteredCourses.map((course, index) => (
                   <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedCourses.includes(course.id)}
-                        onChange={() => handleSelectCourse(course.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                      {index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {course.courseId}

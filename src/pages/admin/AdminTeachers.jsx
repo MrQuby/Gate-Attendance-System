@@ -8,7 +8,6 @@ import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationM
 
 const AdminTeachers = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,7 +15,6 @@ const AdminTeachers = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
-  const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
 
   // Real-time teachers data subscription
   useEffect(() => {
@@ -59,24 +57,6 @@ const AdminTeachers = () => {
     setSearchQuery('');
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedTeachers(teachers.map(teacher => teacher.id));
-    } else {
-      setSelectedTeachers([]);
-    }
-  };
-
-  const handleSelectTeacher = (teacherId) => {
-    setSelectedTeachers(prev => {
-      if (prev.includes(teacherId)) {
-        return prev.filter(id => id !== teacherId);
-      } else {
-        return [...prev, teacherId];
-      }
-    });
-  };
-
   const handleAddTeacher = () => {
     setModalMode('add');
     setSelectedTeacher(null);
@@ -109,22 +89,6 @@ const AdminTeachers = () => {
     } catch (error) {
       console.error('Error deleting teacher:', error);
       toast.error('Failed to delete teacher');
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    try {
-      await Promise.all(
-        selectedTeachers.map((teacherId) =>
-          deleteDoc(doc(db, 'users', teacherId))
-        )
-      );
-      toast.success('Selected teachers deleted successfully');
-      setSelectedTeachers([]);
-      setBulkMenuOpen(false);
-    } catch (error) {
-      console.error('Error deleting teachers:', error);
-      toast.error('Failed to delete selected teachers');
     }
   };
 
@@ -168,28 +132,6 @@ const AdminTeachers = () => {
                 <i className="fas fa-plus"></i>
                 Add Teacher
               </button>
-              
-              <div className="relative">
-                <button
-                  onClick={() => setBulkMenuOpen(!bulkMenuOpen)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                  disabled={selectedTeachers.length === 0}
-                >
-                  Bulk Actions
-                  <i className="fas fa-chevron-down"></i>
-                </button>
-                {bulkMenuOpen && selectedTeachers.length > 0 && (
-                  <div className="absolute z-10 mt-2 w-48 bg-white rounded-md shadow-lg">
-                    <button
-                      onClick={handleBulkDelete}
-                      className="w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"
-                    >
-                      <i className="fas fa-trash-alt mr-2"></i>
-                      Delete Selected
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="flex gap-2">
@@ -230,13 +172,8 @@ const AdminTeachers = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left">
-                      <input
-                        type="checkbox"
-                        checked={selectedTeachers.length === teachers.length}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      #
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Teacher ID
@@ -253,15 +190,10 @@ const AdminTeachers = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTeachers.map((teacher) => (
+                  {filteredTeachers.map((teacher, index) => (
                     <tr key={teacher.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedTeachers.includes(teacher.id)}
-                          onChange={() => handleSelectTeacher(teacher.id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                        {index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {teacher.idNumber || 'N/A'}
