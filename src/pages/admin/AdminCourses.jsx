@@ -5,6 +5,7 @@ import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationM
 import { db } from '../../config/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
+import Pagination from '../../components/common/Pagination';
 
 const AdminCourses = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +23,8 @@ const AdminCourses = () => {
     courseId: null,
     courseName: ''
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // Fetch courses from Firebase
   useEffect(() => {
@@ -128,6 +131,22 @@ const AdminCourses = () => {
     );
   });
 
+  // Calculate pagination
+  const totalItems = filteredCourses.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredCourses.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleReset = () => {
     setSearchQuery('');
   };
@@ -207,10 +226,10 @@ const AdminCourses = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCourses.map((course, index) => (
+                {currentItems.map((course, index) => (
                   <tr key={course.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                      {index + 1}
+                      {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {course.courseId}
@@ -224,22 +243,22 @@ const AdminCourses = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-2">
                         <button
-                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => openModal('view', course)}
                         >
-                          <i className="fas fa-eye fa-lg"></i>
+                          <i className="fas fa-eye"></i>
                         </button>
                         <button
-                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => openModal('edit', course)}
                         >
-                          <i className="fas fa-edit fa-lg"></i>
+                          <i className="fas fa-edit"></i>
                         </button>
                         <button
-                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-2 rounded-lg transition duration-200"
+                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => openDeleteModal(course)}
                         >
-                          <i className="fas fa-trash fa-lg"></i>
+                          <i className="fas fa-trash"></i>
                         </button>
                       </div>
                     </td>
@@ -248,6 +267,17 @@ const AdminCourses = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {filteredCourses.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+            />
+          )}
 
           {/* Course Modal */}
           <CourseModal

@@ -5,6 +5,7 @@ import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/f
 import { toast } from 'react-toastify';
 import TeacherModal from '../../components/modals/TeacherModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
+import Pagination from '../../components/common/Pagination';
 
 const AdminTeachers = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +16,8 @@ const AdminTeachers = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // Real-time teachers data subscription
   useEffect(() => {
@@ -49,9 +52,26 @@ const AdminTeachers = () => {
       (teacher.idNumber?.toLowerCase().includes(searchTerm) || '') ||
       (teacher.firstName?.toLowerCase().includes(searchTerm) || '') ||
       (teacher.lastName?.toLowerCase().includes(searchTerm) || '') ||
-      (teacher.email?.toLowerCase().includes(searchTerm) || '')
+      (teacher.email?.toLowerCase().includes(searchTerm) || '') ||
+      (teacher.department?.toLowerCase().includes(searchTerm) || '')
     );
   });
+
+  // Calculate pagination
+  const totalItems = filteredTeachers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredTeachers.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleReset = () => {
     setSearchQuery('');
@@ -176,7 +196,7 @@ const AdminTeachers = () => {
                       #
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Teacher ID
+                      ID Number
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Name
@@ -185,15 +205,18 @@ const AdminTeachers = () => {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTeachers.map((teacher, index) => (
+                  {currentItems.map((teacher, index) => (
                     <tr key={teacher.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                        {index + 1}
+                        {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {teacher.idNumber || 'N/A'}
@@ -201,28 +224,33 @@ const AdminTeachers = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {teacher.firstName} {teacher.lastName}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {teacher.email}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {teacher.department === 'college' ? 'College' :
+                         teacher.department === 'senior_high' ? 'Senior High' :
+                         teacher.department === 'junior_high' ? 'Junior High' : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleViewTeacher(teacher)}
-                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-2 rounded-lg transition duration-200"
+                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                             title="View"
                           >
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
                             onClick={() => handleEditTeacher(teacher)}
-                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-2 rounded-lg transition duration-200"
+                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                             title="Edit"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
                             onClick={() => handleDeleteTeacher(teacher)}
-                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-2 rounded-lg transition duration-200"
+                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                             title="Delete"
                           >
                             <i className="fas fa-trash-alt"></i>
@@ -235,27 +263,38 @@ const AdminTeachers = () => {
               </table>
             )}
           </div>
+
+          {/* Pagination */}
+          {!loading && filteredTeachers.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+            />
+          )}
+
+          {/* Teacher Modal */}
+          <TeacherModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            teacher={selectedTeacher}
+            mode={modalMode}
+          />
+
+          {/* Delete Confirmation Modal */}
+          <DeleteConfirmationModal
+            isOpen={deleteModalOpen}
+            onClose={() => {
+              setDeleteModalOpen(false);
+              setTeacherToDelete(null);
+            }}
+            onConfirm={confirmDelete}
+            title="Delete Teacher"
+            message={`Are you sure you want to delete ${teacherToDelete?.firstName} ${teacherToDelete?.lastName}? This action cannot be undone.`}
+          />
         </main>
-
-        {/* Teacher Modal */}
-        <TeacherModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          teacher={selectedTeacher}
-          mode={modalMode}
-        />
-
-        {/* Delete Confirmation Modal */}
-        <DeleteConfirmationModal
-          isOpen={deleteModalOpen}
-          onClose={() => {
-            setDeleteModalOpen(false);
-            setTeacherToDelete(null);
-          }}
-          onConfirm={confirmDelete}
-          title="Delete Teacher"
-          message={`Are you sure you want to delete ${teacherToDelete?.firstName} ${teacherToDelete?.lastName}? This action cannot be undone.`}
-        />
       </div>
     </div>
   );
