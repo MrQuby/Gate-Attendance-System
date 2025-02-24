@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
+import LogoutModal from '../modals/LogoutModal';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -77,8 +79,8 @@ const AdminSidebar = () => {
           </Link>
 
           <button
-            onClick={handleLogout}
             className="flex items-center px-4 py-3 hover:bg-blue-600 rounded-lg w-full text-left"
+            onClick={() => setShowLogoutModal(true)}
           >
             <i className="fas fa-sign-out-alt w-6 text-center"></i>
             <span className="ml-4">Logout</span>
@@ -98,6 +100,12 @@ const AdminSidebar = () => {
           </div>
         </div>
       </div>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 };
