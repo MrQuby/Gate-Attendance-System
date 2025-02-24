@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../config/firebase';
+import SuccessModal from '../../components/modals/SuccessModal';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +11,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  const handleContinue = () => {
+    if (userData?.role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (userData?.role === 'teacher') {
+      navigate('/dashboard');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,19 +50,11 @@ const Login = () => {
       
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        // Redirect based on role
-        if (userData.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (userData.role === 'teacher') {
-          navigate('/dashboard');
-        } else {
-          // Handle other roles or invalid roles
-          setError('Invalid user role');
-          await signOut(auth); // Sign out
-        }
+        setUserData(userData);
+        setShowSuccessModal(true);
       } else {
         setError('User data not found');
-        await signOut(auth); // Sign out
+        await signOut(auth);
       }
     } catch (error) {
       console.error('Error during login:', error);
@@ -177,6 +180,14 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        title="Login Success"
+        message={`Welcome back, ${userData?.role?.toUpperCase() || 'USER'} !`}
+        onContinue={handleContinue}
+        autoCloseTime={3}
+      />
     </div>
   );
 };
