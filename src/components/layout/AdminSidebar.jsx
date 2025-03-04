@@ -59,6 +59,16 @@ const AdminSidebar = () => {
           </Link>
 
           <Link
+            to="/admin/departments"
+            className={`flex items-center px-4 py-3 rounded-lg ${
+              currentPath.startsWith('/admin/departments') ? 'bg-blue-600' : 'hover:bg-blue-600'
+            }`}
+          >
+            <i className="fas fa-building w-6 text-center"></i>
+            <span className="ml-4">Departments</span>
+          </Link>
+
+          <Link
             to="/admin/courses"
             className={`flex items-center px-4 py-3 rounded-lg ${
               currentPath.startsWith('/admin/courses') ? 'bg-blue-600' : 'hover:bg-blue-600'

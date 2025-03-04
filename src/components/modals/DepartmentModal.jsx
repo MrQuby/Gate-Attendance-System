@@ -1,52 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { getDepartments } from '../../api/departments';
 
-const CourseModal = ({ 
+const DepartmentModal = ({ 
   isOpen, 
   onClose, 
   mode, 
-  currentCourse, 
+  currentDepartment, 
   onSubmit, 
   onChange, 
   loading 
 }) => {
-  const [departments, setDepartments] = useState([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(false);
-
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        setLoadingDepartments(true);
-        const departmentList = await getDepartments();
-        setDepartments(departmentList);
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchDepartments();
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2 transform transition-all">
+      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div>
             <h3 className="text-xl font-bold text-blue-900">
-              {mode === 'add' ? 'Add New Course' : 
-               mode === 'edit' ? 'Edit Course' : 'Course Details'}
+              {mode === 'add' ? 'Add New Department' : 
+               mode === 'edit' ? 'Edit Department' : 'Department Details'}
             </h3>
             <p className="mt-0.5 text-sm text-gray-500">
-              {mode === 'add' ? 'Create a new course in the system' : 
-               mode === 'edit' ? 'Modify existing course details' : 'View course information'}
+              {mode === 'add' ? 'Create a new department in the system' : 
+               mode === 'edit' ? 'Modify existing department details' : 'View department information'}
             </p>
           </div>
           <button 
@@ -59,96 +37,59 @@ const CourseModal = ({
 
         <form onSubmit={onSubmit} className="mt-4">
           <div className="space-y-4">
-            {/* Course ID Field */}
+            {/* Department Name Field */}
             <div className="grid grid-cols-1 gap-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Course ID
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-hashtag text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  name="courseId"
-                  value={currentCourse.courseId}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  placeholder="Enter course ID"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Course Name Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Course Name
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-book text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  name="courseName"
-                  value={currentCourse.courseName}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  placeholder="Enter course name"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Department Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Department
+                Department Name
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i className="fas fa-building text-gray-400"></i>
                 </div>
-                <select
-                  name="department"
-                  value={currentCourse.department}
+                <input
+                  type="text"
+                  name="name"
+                  value={currentDepartment.name}
                   onChange={onChange}
-                  disabled={mode === 'view' || loadingDepartments}
+                  disabled={mode === 'view'}
+                  placeholder="Enter department name"
                   className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' || loadingDepartments
+                    mode === 'view' 
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
                   } border-gray-300 shadow-sm p-2.5 transition-colors
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
                   required
-                >
-                  <option value="">Select Department</option>
-                  {loadingDepartments ? (
-                    <option value="" disabled>Loading departments...</option>
-                  ) : (
-                    departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))
-                  )}
-                </select>
+                />
+              </div>
+            </div>
+
+            {/* Department Code Field */}
+            <div className="grid grid-cols-1 gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Department Code
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i className="fas fa-code text-gray-400"></i>
+                </div>
+                <input
+                  type="text"
+                  name="code"
+                  value={currentDepartment.code}
+                  onChange={onChange}
+                  disabled={mode === 'view'}
+                  placeholder="Enter department code"
+                  className={`pl-10 w-full rounded-lg border ${
+                    mode === 'view' 
+                      ? 'bg-gray-50 text-gray-500' 
+                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                  } border-gray-300 shadow-sm p-2.5 transition-colors
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                  required
+                />
               </div>
             </div>
 
@@ -164,10 +105,10 @@ const CourseModal = ({
                 </div>
                 <textarea
                   name="description"
-                  value={currentCourse.description}
+                  value={currentDepartment.description}
                   onChange={onChange}
                   disabled={mode === 'view'}
-                  placeholder="Enter course description"
+                  placeholder="Enter department description"
                   rows="4"
                   className={`pl-10 w-full rounded-lg border ${
                     mode === 'view' 
@@ -210,7 +151,7 @@ const CourseModal = ({
                   ) : (
                     <>
                       <i className={`fas ${mode === 'add' ? 'fa-plus' : 'fa-save'}`}></i>
-                      {mode === 'add' ? 'Add Course' : 'Save Changes'}
+                      {mode === 'add' ? 'Add Department' : 'Save Changes'}
                     </>
                   )}
                 </button>
@@ -236,14 +177,13 @@ const CourseModal = ({
   );
 };
 
-CourseModal.propTypes = {
+DepartmentModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   mode: PropTypes.oneOf(['add', 'edit', 'view']).isRequired,
-  currentCourse: PropTypes.shape({
-    courseId: PropTypes.string,
-    courseName: PropTypes.string,
-    department: PropTypes.string,
+  currentDepartment: PropTypes.shape({
+    name: PropTypes.string,
+    code: PropTypes.string,
     description: PropTypes.string,
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
@@ -251,4 +191,4 @@ CourseModal.propTypes = {
   loading: PropTypes.bool.isRequired,
 };
 
-export default CourseModal;
+export default DepartmentModal;

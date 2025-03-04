@@ -11,6 +11,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminStudents from './pages/admin/AdminStudents';
 import AdminTeachers from './pages/admin/AdminTeachers';
 import AdminCourses from './pages/admin/AdminCourses';
+import AdminDepartments from './pages/admin/AdminDepartments';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/students" element={<AdminStudents />} />
         <Route path="/admin/teachers" element={<AdminTeachers />} />
+        <Route path="/admin/departments" element={<AdminDepartments />} />
         <Route path="/admin/courses" element={<AdminCourses />} />
         
         {/* Auth Routes */}
