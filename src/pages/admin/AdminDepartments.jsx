@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getDepartments, addDepartment, updateDepartment, deleteDepartment } from '../../api/departments';
+import { getDepartments, addDepartment, updateDepartment, deleteDepartment, restoreDepartment, subscribeToDepartments } from '../../api/departments';
 import DepartmentModal from '../../components/modals/DepartmentModal';
+import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import { toast } from 'react-toastify';
@@ -11,27 +12,37 @@ const AdminDepartments = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [currentDepartment, setCurrentDepartment] = useState({
     name: '',
     code: '',
     description: ''
   });
 
-  const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      const data = await getDepartments();
-      setDepartments(data);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-      toast.error('Failed to fetch departments');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchDepartments();
+    setLoading(true);
+
+    // Initial fetch
+    getDepartments()
+      .then(data => {
+        setDepartments(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching departments:', error);
+        toast.error('Failed to fetch departments');
+        setLoading(false);
+      });
+
+    // Set up real-time listener
+    const unsubscribe = subscribeToDepartments((updatedDepartments) => {
+      setDepartments(updatedDepartments);
+    });
+
+    // Clean up subscription when component unmounts
+    return () => unsubscribe();
   }, []);
 
   const handleOpenModal = (mode, department = null) => {
@@ -64,24 +75,35 @@ const AdminDepartments = () => {
         toast.success('Department updated successfully');
       }
       handleCloseModal();
-      fetchDepartments();
     } catch (error) {
       console.error('Error submitting department:', error);
       toast.error('Failed to save department');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
-      try {
-        await deleteDepartment(id);
-        toast.success('Department deleted successfully');
-        fetchDepartments();
-      } catch (error) {
-        console.error('Error deleting department:', error);
-        toast.error('Failed to delete department');
-      }
+  const handleDeleteClick = (department) => {
+    setDepartmentToDelete(department);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setDeleteLoading(true);
+      await deleteDepartment(departmentToDelete.id);
+      toast.success('Department archived successfully');
+      setDeleteModalOpen(false);
+      setDepartmentToDelete(null);
+    } catch (error) {
+      console.error('Error archiving department:', error);
+      toast.error('Failed to archive department');
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setDepartmentToDelete(null);
   };
 
   const handleReset = () => {
@@ -171,7 +193,10 @@ const AdminDepartments = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredDepartments.map((department) => (
-                      <tr key={department.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={department.id} 
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{department.name}</div>
                         </td>
@@ -195,7 +220,7 @@ const AdminDepartments = () => {
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
-                            onClick={() => handleDelete(department.id)}
+                            onClick={() => handleDeleteClick(department)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <i className="fas fa-trash"></i>
@@ -227,6 +252,15 @@ const AdminDepartments = () => {
           </main>
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Archive Department"
+        message={`Are you sure you want to archive the department '${departmentToDelete?.name}'? The department will be hidden but can be restored later.`}
+        loading={deleteLoading}
+      />
     </div>
   );
 };
