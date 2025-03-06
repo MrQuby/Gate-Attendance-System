@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { getDepartments } from '../../api/departments';
 
+// Cache for departments data
+let departmentsCache = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 const CourseModal = ({ 
   isOpen, 
   onClose, 
@@ -11,14 +16,27 @@ const CourseModal = ({
   onChange, 
   loading 
 }) => {
-  const [departments, setDepartments] = useState([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [departments, setDepartments] = useState(departmentsCache || []);
+  const [loadingDepartments, setLoadingDepartments] = useState(!departmentsCache);
 
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
+        // Check if we have valid cached data
+        const now = Date.now();
+        if (departmentsCache && (now - lastFetchTime < CACHE_DURATION)) {
+          setDepartments(departmentsCache);
+          setLoadingDepartments(false);
+          return;
+        }
+
         setLoadingDepartments(true);
         const departmentList = await getDepartments();
+        
+        // Update cache
+        departmentsCache = departmentList;
+        lastFetchTime = now;
+        
         setDepartments(departmentList);
       } catch (error) {
         console.error('Error fetching departments:', error);
@@ -27,10 +45,9 @@ const CourseModal = ({
       }
     };
 
-    if (isOpen) {
-      fetchDepartments();
-    }
-  }, [isOpen]);
+    // Always fetch on first render or if cache is expired
+    fetchDepartments();
+  }, []);  // Remove isOpen dependency to pre-fetch data
 
   if (!isOpen) return null;
 
