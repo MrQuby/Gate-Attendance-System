@@ -3,8 +3,7 @@ import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import CourseModal from '../../components/modals/CourseModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
-import { db } from '../../config/firebase';
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getCourses, addCourse, updateCourse, deleteCourse, subscribeToCourses } from '../../api/courses';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
 
@@ -27,25 +26,30 @@ const AdminCourses = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Fetch courses from Firebase
+  // Fetch courses and setup real-time listener
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    setLoading(true);
 
-  const fetchCourses = async () => {
-    try {
-      const coursesCollection = collection(db, 'courses');
-      const coursesSnapshot = await getDocs(coursesCollection);
-      const coursesList = coursesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCourses(coursesList);
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-      toast.error('Failed to fetch courses');
-    }
-  };
+    // Initial fetch
+    getCourses()
+      .then(data => {
+        setCourses(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to fetch courses');
+        setLoading(false);
+      });
+
+    // Set up real-time listener
+    const unsubscribe = subscribeToCourses((updatedCourses) => {
+      setCourses(updatedCourses);
+    });
+
+    // Clean up subscription when component unmounts
+    return () => unsubscribe();
+  }, []);
 
   // Modal handlers
   const openModal = (mode, course = null) => {
@@ -74,15 +78,12 @@ const AdminCourses = () => {
 
     try {
       if (modalMode === 'add') {
-        await addDoc(collection(db, 'courses'), currentCourse);
+        await addCourse(currentCourse);
         toast.success('Course added successfully');
       } else if (modalMode === 'edit') {
-        const courseRef = doc(db, 'courses', currentCourse.id);
-        await updateDoc(courseRef, currentCourse);
+        await updateCourse(currentCourse.id, currentCourse);
         toast.success('Course updated successfully');
       }
-      
-      fetchCourses();
       closeModal();
     } catch (error) {
       console.error('Error:', error);
@@ -95,13 +96,12 @@ const AdminCourses = () => {
   const handleDelete = async (courseId) => {
     try {
       setLoading(true);
-      await deleteDoc(doc(db, 'courses', courseId));
-      toast.success('Course deleted successfully');
-      fetchCourses();
+      await deleteCourse(courseId);
+      toast.success('Course archived successfully');
       setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
     } catch (error) {
-      console.error('Error deleting course:', error);
-      toast.error('Failed to delete course');
+      console.error('Error archiving course:', error);
+      toast.error('Failed to archive course');
     } finally {
       setLoading(false);
     }
