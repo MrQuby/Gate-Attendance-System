@@ -8,32 +8,28 @@ import { toast } from 'react-toastify';
 
 const AdminDepartments = () => {
   const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [departmentToDelete, setDepartmentToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [currentDepartment, setCurrentDepartment] = useState({
     name: '',
     code: '',
     description: ''
   });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
-    setLoading(true);
-
     // Initial fetch
     getDepartments()
       .then(data => {
         setDepartments(data);
-        setLoading(false);
       })
       .catch(error => {
         console.error('Error fetching departments:', error);
         toast.error('Failed to fetch departments');
-        setLoading(false);
       });
 
     // Set up real-time listener
@@ -48,11 +44,11 @@ const AdminDepartments = () => {
   const handleOpenModal = (mode, department = null) => {
     setModalMode(mode);
     setCurrentDepartment(department || { name: '', code: '', description: '' });
-    setModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setModalOpen(false);
+    setIsModalOpen(false);
     setCurrentDepartment({ name: '', code: '', description: '' });
   };
 
@@ -66,6 +62,7 @@ const AdminDepartments = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       if (modalMode === 'add') {
         await addDepartment(currentDepartment);
@@ -81,14 +78,15 @@ const AdminDepartments = () => {
     }
   };
 
-  const handleDeleteClick = (department) => {
+  const handleOpenDeleteModal = (department) => {
     setDepartmentToDelete(department);
     setDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDelete = async () => {
+    if (!departmentToDelete) return;
+
     try {
-      setDeleteLoading(true);
       await deleteDepartment(departmentToDelete.id);
       toast.success('Department archived successfully');
       setDeleteModalOpen(false);
@@ -96,8 +94,6 @@ const AdminDepartments = () => {
     } catch (error) {
       console.error('Error archiving department:', error);
       toast.error('Failed to archive department');
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -168,86 +164,81 @@ const AdminDepartments = () => {
               </div>
             </div>
 
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Department Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Code
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredDepartments.map((department) => (
-                      <tr 
-                        key={department.id} 
-                        className="hover:bg-gray-50"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{department.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{department.code}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-500 line-clamp-2">{department.description}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredDepartments.map((department) => (
+                    <tr 
+                      key={department.id} 
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{department.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{department.code}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-500 line-clamp-2">{department.description}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
                           <button
+                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => handleOpenModal('view', department)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
                           >
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
+                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => handleOpenModal('edit', department)}
-                            className="text-yellow-600 hover:text-yellow-900 mr-3"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(department)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
+                            onClick={() => handleOpenDeleteModal(department)}
                           >
                             <i className="fas fa-trash"></i>
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredDepartments.length === 0 && (
-                      <tr>
-                        <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                          No departments found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredDepartments.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No departments found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             <DepartmentModal
-              isOpen={modalOpen}
+              isOpen={isModalOpen}
               onClose={handleCloseModal}
               mode={modalMode}
               currentDepartment={currentDepartment}
               onSubmit={handleSubmit}
               onChange={handleInputChange}
-              loading={loading}
             />
           </main>
         </div>
@@ -256,10 +247,9 @@ const AdminDepartments = () => {
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={handleDelete}
         title="Archive Department"
         message={`Are you sure you want to archive the department '${departmentToDelete?.name}'? The department will be hidden but can be restored later.`}
-        loading={deleteLoading}
       />
     </div>
   );

@@ -17,7 +17,6 @@ const AdminCourses = () => {
     courseName: '',
     description: ''
   });
-  const [loading, setLoading] = useState(false);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     courseId: null,
@@ -26,20 +25,15 @@ const AdminCourses = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Fetch courses and setup real-time listener
   useEffect(() => {
-    setLoading(true);
-
     // Initial fetch
     getCourses()
       .then(data => {
         setCourses(data);
-        setLoading(false);
       })
       .catch(error => {
         console.error('Error fetching courses:', error);
         toast.error('Failed to fetch courses');
-        setLoading(false);
       });
 
     // Set up real-time listener
@@ -74,7 +68,6 @@ const AdminCourses = () => {
   // CRUD operations
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       if (modalMode === 'add') {
@@ -88,22 +81,17 @@ const AdminCourses = () => {
     } catch (error) {
       console.error('Error:', error);
       toast.error(modalMode === 'add' ? 'Failed to add course' : 'Failed to update course');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async (courseId) => {
     try {
-      setLoading(true);
       await deleteCourse(courseId);
       toast.success('Course archived successfully');
       setDeleteModal({ isOpen: false, courseId: null, courseName: '' });
     } catch (error) {
       console.error('Error archiving course:', error);
       toast.error('Failed to archive course');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -285,7 +273,6 @@ const AdminCourses = () => {
               currentCourse={currentCourse}
               onSubmit={handleSubmit}
               onChange={handleInputChange}
-              loading={loading}
             />
 
             {/* Delete Confirmation Modal */}
@@ -295,7 +282,6 @@ const AdminCourses = () => {
               onConfirm={() => handleDelete(deleteModal.courseId)}
               title="Delete Course"
               message={`Are you sure you want to delete "${deleteModal.courseName}"? This action cannot be undone.`}
-              loading={loading}
             />
           </main>
         </div>
