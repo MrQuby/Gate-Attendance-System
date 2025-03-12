@@ -1,11 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { getDepartments } from '../../api/departments';
-
-// Cache for departments data
-let departmentsCache = null;
-let lastFetchTime = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 const CourseModal = ({ 
   isOpen, 
@@ -14,46 +8,14 @@ const CourseModal = ({
   currentCourse, 
   onSubmit, 
   onChange, 
-  loading 
+  loading,
+  departments = [] 
 }) => {
-  const [departments, setDepartments] = useState(departmentsCache || []);
-  const [loadingDepartments, setLoadingDepartments] = useState(!departmentsCache);
-
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        // Check if we have valid cached data
-        const now = Date.now();
-        if (departmentsCache && (now - lastFetchTime < CACHE_DURATION)) {
-          setDepartments(departmentsCache);
-          setLoadingDepartments(false);
-          return;
-        }
-
-        setLoadingDepartments(true);
-        const departmentList = await getDepartments();
-        
-        // Update cache
-        departmentsCache = departmentList;
-        lastFetchTime = now;
-        
-        setDepartments(departmentList);
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
-
-    // Always fetch on first render or if cache is expired
-    fetchDepartments();
-  }, []);  // Remove isOpen dependency to pre-fetch data
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2 transform transition-all">
+      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div>
@@ -146,9 +108,9 @@ const CourseModal = ({
                   name="department"
                   value={currentCourse.department}
                   onChange={onChange}
-                  disabled={mode === 'view' || loadingDepartments}
+                  disabled={mode === 'view' || loading}
                   className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' || loadingDepartments
+                    mode === 'view' || loading
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
                   } border-gray-300 shadow-sm p-2.5 transition-colors
@@ -156,7 +118,7 @@ const CourseModal = ({
                   required
                 >
                   <option value="">Select Department</option>
-                  {loadingDepartments ? (
+                  {loading ? (
                     <option value="" disabled>Loading departments...</option>
                   ) : (
                     departments.map(dept => (
@@ -266,6 +228,10 @@ CourseModal.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  departments: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  })),
 };
 
 export default CourseModal;

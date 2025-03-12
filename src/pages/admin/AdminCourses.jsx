@@ -4,6 +4,7 @@ import AdminHeader from '../../components/layout/AdminHeader';
 import CourseModal from '../../components/modals/CourseModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import { getCourses, addCourse, updateCourse, deleteCourse, subscribeToCourses } from '../../api/courses';
+import { getDepartments, subscribeToDepartments } from '../../api/departments';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
 
@@ -24,25 +25,36 @@ const AdminCourses = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
-    // Initial fetch
-    getCourses()
-      .then(data => {
-        setCourses(data);
-      })
-      .catch(error => {
-        console.error('Error fetching courses:', error);
-        toast.error('Failed to fetch courses');
-      });
+    // Initial fetch for courses and departments
+    Promise.all([
+      getCourses(),
+      getDepartments()
+    ]).then(([coursesData, departmentsData]) => {
+      setCourses(coursesData);
+      setDepartments(departmentsData);
+    }).catch(error => {
+      console.error('Error fetching data:', error);
+      toast.error('Failed to fetch required data');
+    });
 
-    // Set up real-time listener
-    const unsubscribe = subscribeToCourses((updatedCourses) => {
+    // Set up real-time listeners
+    const unsubscribeCourses = subscribeToCourses((updatedCourses) => {
       setCourses(updatedCourses);
     });
 
-    // Clean up subscription when component unmounts
-    return () => unsubscribe();
+    const unsubscribeDepts = subscribeToDepartments((updatedDepartments) => {
+      setDepartments(updatedDepartments);
+    });
+
+    // Clean up subscriptions
+    return () => {
+      unsubscribeCourses();
+      unsubscribeDepts();
+    };
   }, []);
 
   // Modal handlers
@@ -273,6 +285,8 @@ const AdminCourses = () => {
               currentCourse={currentCourse}
               onSubmit={handleSubmit}
               onChange={handleInputChange}
+              loading={isLoading}
+              departments={departments}
             />
 
             {/* Delete Confirmation Modal */}
