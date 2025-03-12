@@ -1,69 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../config/firebase';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
-import AddStudentModal from '../../components/modals/AddStudentModal';
-import ViewStudentModal from '../../components/modals/ViewStudentModal';
+import { getStudents, deleteStudent, subscribeToStudents, addStudent, updateStudent } from '../../api/students';
+import { toast } from 'react-toastify';
+import StudentModal from '../../components/modals/StudentModal';
+import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import Pagination from '../../components/common/Pagination';
 
 const AdminStudents = () => {
-  const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add');
+  const [currentStudent, setCurrentStudent] = useState({
+    studentId: '',
+    name: '',
+    email: '',
+    department: '',
+    course: '',
+    rfidTag: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
   useEffect(() => {
-    fetchStudents();
+    // Initial fetch
+    getStudents()
+      .then(data => {
+        setStudents(data);
+      })
+      .catch(error => {
+        console.error('Error fetching students:', error);
+        toast.error('Failed to fetch students');
+      });
+
+    // Set up real-time listener
+    const unsubscribe = subscribeToStudents((updatedStudents) => {
+      console.log('Received real-time update:', updatedStudents);
+      setStudents(updatedStudents);
+    });
+
+    // Clean up subscription when component unmounts
+    return () => unsubscribe();
   }, []);
 
-  const fetchStudents = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'students'));
-      const studentsList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setStudents(studentsList);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (studentId) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        await deleteDoc(doc(db, 'students', studentId));
-        await fetchStudents(); // Refresh the list
-      } catch (error) {
-        console.error('Error deleting student:', error);
-      }
-    }
-  };
-
-  const handleReset = () => {
-    setSearchQuery('');
-  };
-
-  const handleViewStudent = (student) => {
-    setSelectedStudent(student);
-    setIsViewModalOpen(true);
-  };
-
-  const filteredStudents = students.filter(student => {
-    const searchLower = searchQuery.toLowerCase();
+  const filteredStudents = students.filter((student) => {
+    const searchTerm = searchQuery.toLowerCase();
     return (
-      student.idNumber?.toLowerCase().includes(searchLower) ||
-      student.firstName?.toLowerCase().includes(searchLower) ||
-      student.lastName?.toLowerCase().includes(searchLower) ||
-      student.email?.toLowerCase().includes(searchLower) ||
-      student.course?.toLowerCase().includes(searchLower)
+      (student.studentId?.toLowerCase().includes(searchTerm) || '') ||
+      (student.name?.toLowerCase().includes(searchTerm) || '') ||
+      (student.email?.toLowerCase().includes(searchTerm) || '') ||
+      (student.department?.toLowerCase().includes(searchTerm) || '') ||
+      (student.course?.toLowerCase().includes(searchTerm) || '') ||
+      (student.rfidTag?.toLowerCase().includes(searchTerm) || '')
     );
   });
 
@@ -83,12 +75,89 @@ const AdminStudents = () => {
     setCurrentPage(pageNumber);
   };
 
+  const handleReset = () => {
+    setSearchQuery('');
+  };
+
+  const handleOpenModal = (mode, student = null) => {
+    setModalMode(mode);
+    setCurrentStudent(student || {
+      studentId: '',
+      name: '',
+      email: '',
+      department: '',
+      course: '',
+      rfidTag: '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentStudent({
+      studentId: '',
+      name: '',
+      email: '',
+      department: '',
+      course: '',
+      rfidTag: '',
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCurrentStudent(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (modalMode === 'add') {
+        await addStudent(currentStudent);
+        toast.success('Student added successfully');
+      } else if (modalMode === 'edit' && currentStudent.id) {
+        await updateStudent(currentStudent.id, currentStudent);
+        toast.success('Student updated successfully');
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error saving student:', error);
+      toast.error('Failed to save student');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenDeleteModal = (student) => {
+    setStudentToDelete(student);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!studentToDelete) return;
+
+    try {
+      await deleteStudent(studentToDelete.id);
+      toast.success('Student archived successfully');
+      setDeleteModalOpen(false);
+      setStudentToDelete(null);
+    } catch (error) {
+      console.error('Error archiving student:', error);
+      toast.error('Failed to archive student');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
-
+      
       <div className="flex-1 flex flex-col">
-        <AdminHeader title="Student List" />
+        <AdminHeader title="Students" />
 
         <div className="flex-1 overflow-auto">
           <main className="p-8">
@@ -96,23 +165,12 @@ const AdminStudents = () => {
             <div className="flex justify-between items-center mb-6">
               <div className="flex gap-2">
                 <button
+                  onClick={() => handleOpenModal('add')}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
-                  onClick={() => setIsAddModalOpen(true)}
                 >
                   <i className="fas fa-plus"></i>
                   Add Student
                 </button>
-                
-                <div className="relative">
-                  <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                    onClick={() => {/* TODO: Show bulk actions menu */}}
-                  >
-                    Bulk Actions
-                    <i className="fas fa-chevron-down"></i>
-                  </button>
-                  {/* Bulk actions dropdown menu would go here */}
-                </div>
               </div>
 
               <div className="flex gap-2">
@@ -137,151 +195,130 @@ const AdminStudents = () => {
 
             {/* Students Table */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              {loading ? (
-                <div className="flex justify-center items-center h-32">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <i className="fas fa-spinner fa-spin text-xl"></i>
-                    <span>Loading students...</span>
-                  </div>
-                </div>
-              ) : filteredStudents.length === 0 ? (
-                <div className="flex flex-col justify-center items-center h-32 text-gray-500">
-                  <i className="fas fa-users text-4xl mb-2"></i>
-                  <span>No students found</span>
-                </div>
-              ) : (
-                <>
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          #
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Student ID
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Student
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Year Level
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Course
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Action
-                        </th>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Student ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Course
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      RFID Tag
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentItems.length > 0 ? (
+                    currentItems.map((student, index) => (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {indexOfFirstItem + index + 1}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.studentId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.department}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.course}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.rfidTag}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleOpenModal('view', student)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="View Student"
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+                            <button
+                              onClick={() => handleOpenModal('edit', student)}
+                              className="text-yellow-600 hover:text-yellow-900"
+                              title="Edit Student"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              onClick={() => handleOpenDeleteModal(student)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Archive Student"
+                            >
+                              <i className="fas fa-archive"></i>
+                            </button>
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {currentItems.map((student, index) => (
-                        <tr key={student.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                            {(currentPage - 1) * itemsPerPage + index + 1}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.studentId}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                {student.profileImage ? (
-                                  <img
-                                    className="h-10 w-10 rounded-full"
-                                    src={student.profileImage}
-                                    alt=""
-                                  />
-                                ) : (
-                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <i className="fas fa-user text-gray-400"></i>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {student.firstName} {student.lastName}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {student.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {student.yearLevel}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {student.course}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleViewStudent(student)}
-                                className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
-                                title="View"
-                              >
-                                <i className="fas fa-eye"></i>
-                              </button>
-                              <button
-                                onClick={() => {/* TODO: Edit student */}}
-                                className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
-                                title="Edit"
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                              <button
-                                onClick={() => handleDelete(student.id)}
-                                className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
-                                title="Delete"
-                              >
-                                <i className="fas fa-trash-alt"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No students found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
 
             {/* Pagination */}
-            {!loading && filteredStudents.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                itemsPerPage={itemsPerPage}
-                totalItems={totalItems}
-              />
+            {totalPages > 1 && (
+              <div className="mt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             )}
           </main>
         </div>
       </div>
 
-      {/* Add Student Modal */}
-      <AddStudentModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          fetchStudents();
-          setIsAddModalOpen(false);
-        }}
+      {/* Student Modal */}
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        currentStudent={currentStudent}
+        mode={modalMode}
+        onSubmit={handleSubmit}
+        onChange={handleChange}
+        loading={isLoading}
       />
 
-      {/* View Student Modal */}
-      <ViewStudentModal
-        isOpen={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedStudent(null);
-        }}
-        student={selectedStudent}
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Archive Student"
+        message="Are you sure you want to archive this student? This action will remove them from active students but their data will be preserved."
       />
     </div>
   );
