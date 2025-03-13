@@ -2,87 +2,83 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import { getTeachers, addTeacher, updateTeacher, deleteTeacher, subscribeToTeachers } from '../../api/teachers';
+import { getDepartments, subscribeToDepartments } from '../../api/departments';
 import { toast } from 'react-toastify';
 import TeacherModal from '../../components/modals/TeacherModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import Pagination from '../../components/common/Pagination';
 
 const AdminTeachers = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [teachers, setTeachers] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [currentTeacher, setCurrentTeacher] = useState({
     teacherId: '',
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    department: '',
-    courses: []
+    department: ''
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Initial fetch
-    getTeachers()
-      .then(data => {
-        setTeachers(data);
-      })
-      .catch(error => {
-        console.error('Error fetching teachers:', error);
-        toast.error('Failed to fetch teachers');
-      });
-
-    // Set up real-time listener
-    const unsubscribe = subscribeToTeachers((updatedTeachers) => {
-      setTeachers(updatedTeachers);
+    // Initial fetch for immediate data
+    Promise.all([
+      getTeachers(),
+      getDepartments()
+    ]).then(([teachersData, departmentsData]) => {
+      setTeachers(teachersData);
+      setDepartments(departmentsData);
+    }).catch(error => {
+      console.error('Error fetching data:', error);
+      toast.error('Failed to fetch required data');
     });
 
-    // Clean up subscription when component unmounts
-    return () => unsubscribe();
+    // Set up real-time listeners for updates
+    const unsubscribeTeachers = subscribeToTeachers((updatedTeachers) => {
+      if (updatedTeachers) {
+        setTeachers(updatedTeachers);
+      }
+    });
+
+    const unsubscribeDepts = subscribeToDepartments((updatedDepartments) => {
+      if (updatedDepartments) {
+        setDepartments(updatedDepartments);
+      }
+    });
+
+    return () => {
+      unsubscribeTeachers();
+      unsubscribeDepts();
+    };
   }, []);
-
-  const filteredTeachers = teachers.filter((teacher) => {
-    const searchTerm = searchQuery.toLowerCase();
-    return (
-      (teacher.teacherId?.toLowerCase().includes(searchTerm) || '') ||
-      (teacher.name?.toLowerCase().includes(searchTerm) || '') ||
-      (teacher.email?.toLowerCase().includes(searchTerm) || '') ||
-      (teacher.department?.toLowerCase().includes(searchTerm) || '')
-    );
-  });
-
-  // Calculate pagination
-  const totalItems = filteredTeachers.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredTeachers.slice(indexOfFirstItem, indexOfLastItem);
-
-  // Reset to first page when search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleReset = () => {
-    setSearchQuery('');
-  };
 
   const handleOpenModal = (mode, teacher = null) => {
     setModalMode(mode);
-    setCurrentTeacher(teacher || { teacherId: '', name: '', email: '', department: '', courses: [] });
-    setIsModalOpen(true);
+    setCurrentTeacher(teacher || {
+      teacherId: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      department: ''
+    });
+    setModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentTeacher({ teacherId: '', name: '', email: '', department: '', courses: [] });
+    setModalOpen(false);
+    setCurrentTeacher({
+      teacherId: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      department: ''
+    });
   };
 
   const handleInputChange = (e) => {
@@ -95,7 +91,6 @@ const AdminTeachers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (modalMode === 'add') {
         await addTeacher(currentTeacher);
@@ -106,8 +101,22 @@ const AdminTeachers = () => {
       }
       handleCloseModal();
     } catch (error) {
-      console.error('Error:', error);
-      toast.error(modalMode === 'add' ? 'Failed to add teacher' : 'Failed to update teacher');
+      console.error('Error saving teacher:', error);
+      toast.error('Failed to save teacher');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!teacherToDelete) return;
+
+    try {
+      await deleteTeacher(teacherToDelete.id);
+      toast.success('Teacher deleted successfully');
+      setDeleteModalOpen(false);
+      setTeacherToDelete(null);
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+      toast.error('Failed to delete teacher');
     }
   };
 
@@ -116,19 +125,26 @@ const AdminTeachers = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!teacherToDelete) return;
-
-    try {
-      await deleteTeacher(teacherToDelete.id);
-      toast.success('Teacher archived successfully');
-      setDeleteModalOpen(false);
-      setTeacherToDelete(null);
-    } catch (error) {
-      console.error('Error archiving teacher:', error);
-      toast.error('Failed to archive teacher');
-    }
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
+
+  const filteredTeachers = teachers.filter((teacher) => {
+    const searchTerm = searchQuery.toLowerCase();
+    return (
+      teacher.teacherId?.toLowerCase().includes(searchTerm) ||
+      teacher.firstName?.toLowerCase().includes(searchTerm) ||
+      teacher.lastName?.toLowerCase().includes(searchTerm) ||
+      teacher.email?.toLowerCase().includes(searchTerm) ||
+      teacher.department?.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  const totalItems = filteredTeachers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredTeachers.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -163,7 +179,7 @@ const AdminTeachers = () => {
                   <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <button
-                  onClick={handleReset}
+                  onClick={() => setSearchQuery('')}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
                 >
                   Reset
@@ -197,53 +213,54 @@ const AdminTeachers = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.map((teacher, index) => (
-                    <tr key={teacher.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {teacher.teacherId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {teacher.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.department}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenModal('view', teacher)}
-                          >
-                            <i className="fas fa-eye"></i>
-                          </button>
-                          <button
-                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenModal('edit', teacher)}
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenDeleteModal(teacher)}
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {currentItems.length === 0 && (
+                  {currentItems.length === 0 ? (
                     <tr>
                       <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                         No teachers found
                       </td>
                     </tr>
+                  ) : (
+                    currentItems.map((teacher, index) => (
+                      <tr key={teacher.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {teacher.teacherId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {`${teacher.firstName} ${teacher.lastName}`}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {teacher.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {departments.find(d => d.id === teacher.department)?.name || 'Unknown'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
+                              onClick={() => handleOpenModal('view', teacher)}
+                            >
+                              <i className="fas fa-eye"></i>
+                            </button>
+                            <button
+                              className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
+                              onClick={() => handleOpenModal('edit', teacher)}
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
+                              onClick={() => handleOpenDeleteModal(teacher)}
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
@@ -262,12 +279,13 @@ const AdminTeachers = () => {
 
             {/* Teacher Modal */}
             <TeacherModal
-              isOpen={isModalOpen}
+              isOpen={modalOpen}
               onClose={handleCloseModal}
               mode={modalMode}
               currentTeacher={currentTeacher}
               onSubmit={handleSubmit}
               onChange={handleInputChange}
+              departments={departments}
             />
 
             {/* Delete Confirmation Modal */}
@@ -276,7 +294,7 @@ const AdminTeachers = () => {
               onClose={() => setDeleteModalOpen(false)}
               onConfirm={handleDelete}
               title="Archive Teacher"
-              message={`Are you sure you want to archive the teacher "${teacherToDelete?.name}"? The teacher will be hidden but can be restored later.`}
+              message={`Are you sure you want to archive the teacher "${teacherToDelete?.firstName} ${teacherToDelete?.lastName}"? The teacher will be hidden but can be restored later.`}
             />
           </main>
         </div>

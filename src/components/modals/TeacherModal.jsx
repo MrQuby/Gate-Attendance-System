@@ -1,63 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../../config/firebase';
-import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
-import { toast } from 'react-toastify';
+import React from 'react';
 import PropTypes from 'prop-types';
 
-const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
-  const [formData, setFormData] = useState({
-    idNumber: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    department: '',
-    role: 'teacher'
-  });
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (teacher && mode !== 'add') {
-      setFormData({
-        idNumber: teacher.idNumber || '',
-        firstName: teacher.firstName || '',
-        lastName: teacher.lastName || '',
-        email: teacher.email || '',
-        department: teacher.department || '',
-        role: 'teacher'
-      });
-    } else {
-      setFormData({
-        idNumber: '',
-        firstName: '',
-        lastName: '',
-        email: '',
-        department: '',
-        role: 'teacher'
-      });
-    }
-  }, [teacher, mode]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (mode === 'add') {
-        await addDoc(collection(db, 'users'), formData);
-        toast.success('Teacher added successfully');
-      } else if (mode === 'edit' && teacher) {
-        await setDoc(doc(db, 'users', teacher.id), formData, { merge: true });
-        toast.success('Teacher updated successfully');
-      }
-      onClose();
-    } catch (error) {
-      console.error('Error saving teacher:', error);
-      toast.error('Failed to save teacher');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const TeacherModal = ({ 
+  isOpen, 
+  onClose, 
+  mode, 
+  currentTeacher, 
+  onSubmit, 
+  onChange,
+  loading,
+  departments = []
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -83,7 +36,7 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4">
+        <form onSubmit={onSubmit} className="mt-4">
           <div className="space-y-4">
             {/* Teacher ID Field */}
             <div className="grid grid-cols-1 gap-2">
@@ -97,8 +50,9 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                 </div>
                 <input
                   type="text"
-                  value={formData.idNumber}
-                  onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                  name="teacherId"
+                  value={currentTeacher.teacherId}
+                  onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter teacher ID"
                   className={`pl-10 w-full rounded-lg border ${
@@ -124,8 +78,9 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                 </div>
                 <input
                   type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  name="firstName"
+                  value={currentTeacher.firstName}
+                  onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter first name"
                   className={`pl-10 w-full rounded-lg border ${
@@ -151,8 +106,9 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                 </div>
                 <input
                   type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  name="lastName"
+                  value={currentTeacher.lastName}
+                  onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter last name"
                   className={`pl-10 w-full rounded-lg border ${
@@ -178,8 +134,9 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                 </div>
                 <input
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  name="email"
+                  value={currentTeacher.email}
+                  onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter email address"
                   className={`pl-10 w-full rounded-lg border ${
@@ -204,11 +161,12 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                   <i className="fas fa-building text-gray-400"></i>
                 </div>
                 <select
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  disabled={mode === 'view'}
+                  name="department"
+                  value={currentTeacher.department}
+                  onChange={onChange}
+                  disabled={mode === 'view' || loading}
                   className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
+                    mode === 'view' || loading
                       ? 'bg-gray-50 text-gray-500' 
                       : 'bg-white hover:border-gray-400 focus:border-blue-500'
                   } border-gray-300 shadow-sm p-2.5 transition-colors
@@ -216,9 +174,11 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                   required
                 >
                   <option value="">Select Department</option>
-                  <option value="college">College</option>
-                  <option value="senior_high">Senior High</option>
-                  <option value="junior_high">Junior High</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -226,17 +186,17 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
 
           {/* Modal Footer */}
           <div className="mt-6 pt-4 border-t border-gray-200">
-            {mode !== 'view' ? (
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
-                    hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
-                    transition-colors"
-                >
-                  Cancel
-                </button>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
+                  hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
+                  transition-colors"
+              >
+                {mode === 'view' ? 'Close' : 'Cancel'}
+              </button>
+              {mode !== 'view' && (
                 <button
                   type="submit"
                   disabled={loading}
@@ -257,21 +217,8 @@ const TeacherModal = ({ isOpen, onClose, teacher, mode }) => {
                     </>
                   )}
                 </button>
-              </div>
-            ) : (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2.5 bg-gray-800 text-white rounded-lg shadow-sm text-sm font-medium 
-                    hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
-                    transition-colors flex items-center gap-2"
-                >
-                  <i className="fas fa-times"></i>
-                  Close
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </form>
       </div>
@@ -283,15 +230,20 @@ TeacherModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   mode: PropTypes.oneOf(['add', 'edit', 'view']).isRequired,
-  teacher: PropTypes.shape({
-    id: PropTypes.string,
-    idNumber: PropTypes.string,
+  currentTeacher: PropTypes.shape({
+    teacherId: PropTypes.string,
     firstName: PropTypes.string,
     lastName: PropTypes.string,
     email: PropTypes.string,
     department: PropTypes.string,
-    role: PropTypes.string,
-  }),
+  }).isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+  departments: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  })),
 };
 
 export default TeacherModal;
