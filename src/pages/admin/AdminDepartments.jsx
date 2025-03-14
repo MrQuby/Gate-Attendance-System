@@ -5,6 +5,7 @@ import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationM
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import { toast } from 'react-toastify';
+import Pagination from '../../components/common/Pagination';
 
 const AdminDepartments = () => {
   const [departments, setDepartments] = useState([]);
@@ -106,6 +107,15 @@ const AdminDepartments = () => {
     setSearchQuery('');
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const filteredDepartments = departments.filter((department) => {
     const searchTerm = searchQuery.toLowerCase();
     return (
@@ -114,6 +124,13 @@ const AdminDepartments = () => {
       department.description.toLowerCase().includes(searchTerm)
     );
   });
+
+  // Calculate pagination
+  const totalItems = filteredDepartments.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredDepartments.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -169,6 +186,9 @@ const AdminDepartments = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Department Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -177,19 +197,24 @@ const AdminDepartments = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDepartments.map((department) => (
+                  {currentItems.map((department, index) => (
                     <tr 
                       key={department.id} 
                       className="hover:bg-gray-50"
                     >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                        {indexOfFirstItem + index + 1}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{department.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {department.name}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{department.code}</div>
@@ -198,24 +223,27 @@ const AdminDepartments = () => {
                         <div className="text-sm text-gray-500 line-clamp-2">{department.description}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-end">
                           <button
                             className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => handleOpenModal('view', department)}
+                            title="View Details"
                           >
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
                             className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => handleOpenModal('edit', department)}
+                            title="Edit"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
                             className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => handleOpenDeleteModal(department)}
+                            title="Archive"
                           >
-                            <i className="fas fa-trash"></i>
+                            <i className="fas fa-archive"></i>
                           </button>
                         </div>
                       </td>
@@ -223,7 +251,7 @@ const AdminDepartments = () => {
                   ))}
                   {filteredDepartments.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                         No departments found
                       </td>
                     </tr>
@@ -231,6 +259,17 @@ const AdminDepartments = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {filteredDepartments.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+              />
+            )}
 
             <DepartmentModal
               isOpen={isModalOpen}
