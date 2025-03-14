@@ -12,13 +12,13 @@ const AdminTeachers = () => {
   const [teachers, setTeachers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('add');
+  const [modalMode, setModalMode] = useState('add'); // 'add', 'edit', 'view'
   const [currentTeacher, setCurrentTeacher] = useState({
     teacherId: '',
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
-    department: ''
+    department: '',
+    courses: []
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
@@ -27,19 +27,6 @@ const AdminTeachers = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Initial fetch for immediate data
-    Promise.all([
-      getTeachers(),
-      getDepartments()
-    ]).then(([teachersData, departmentsData]) => {
-      setTeachers(teachersData);
-      setDepartments(departmentsData);
-    }).catch(error => {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to fetch required data');
-    });
-
-    // Set up real-time listeners for updates
     const unsubscribeTeachers = subscribeToTeachers((updatedTeachers) => {
       if (updatedTeachers) {
         setTeachers(updatedTeachers);
@@ -62,10 +49,10 @@ const AdminTeachers = () => {
     setModalMode(mode);
     setCurrentTeacher(teacher || {
       teacherId: '',
-      firstName: '',
-      lastName: '',
+      name: '',
       email: '',
-      department: ''
+      department: '',
+      courses: []
     });
     setModalOpen(true);
   };
@@ -74,10 +61,10 @@ const AdminTeachers = () => {
     setModalOpen(false);
     setCurrentTeacher({
       teacherId: '',
-      firstName: '',
-      lastName: '',
+      name: '',
       email: '',
-      department: ''
+      department: '',
+      courses: []
     });
   };
 
@@ -111,13 +98,18 @@ const AdminTeachers = () => {
 
     try {
       await deleteTeacher(teacherToDelete.id);
-      toast.success('Teacher deleted successfully');
+      toast.success('Teacher archived successfully');
       setDeleteModalOpen(false);
       setTeacherToDelete(null);
     } catch (error) {
-      console.error('Error deleting teacher:', error);
-      toast.error('Failed to delete teacher');
+      console.error('Error archiving teacher:', error);
+      toast.error('Failed to archive teacher');
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setTeacherToDelete(null);
   };
 
   const handleOpenDeleteModal = (teacher) => {
@@ -133,8 +125,7 @@ const AdminTeachers = () => {
     const searchTerm = searchQuery.toLowerCase();
     return (
       teacher.teacherId?.toLowerCase().includes(searchTerm) ||
-      teacher.firstName?.toLowerCase().includes(searchTerm) ||
-      teacher.lastName?.toLowerCase().includes(searchTerm) ||
+      teacher.name?.toLowerCase().includes(searchTerm) ||
       teacher.email?.toLowerCase().includes(searchTerm) ||
       teacher.department?.toLowerCase().includes(searchTerm)
     );
@@ -207,98 +198,91 @@ const AdminTeachers = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Department
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No teachers found
+                  {currentItems.map((teacher, index) => (
+                    <tr key={teacher.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                        {indexOfFirstItem + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {teacher.teacherId}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {teacher.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {teacher.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {departments.find(d => d.id === teacher.department)?.name || teacher.department}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2 justify-center">
+                          <button
+                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
+                            onClick={() => handleOpenModal('view', teacher)}
+                            title="View Details"
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                          <button
+                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
+                            onClick={() => handleOpenModal('edit', teacher)}
+                            title="Edit"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
+                            onClick={() => handleOpenDeleteModal(teacher)}
+                            title="Archive"
+                          >
+                            <i className="fas fa-archive"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ) : (
-                    currentItems.map((teacher, index) => (
-                      <tr key={teacher.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                          {(currentPage - 1) * itemsPerPage + index + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {teacher.teacherId}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {`${teacher.firstName} ${teacher.lastName}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {teacher.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {departments.find(d => d.id === teacher.department)?.name || 'Unknown'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
-                              onClick={() => handleOpenModal('view', teacher)}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                            <button
-                              className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
-                              onClick={() => handleOpenModal('edit', teacher)}
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button
-                              className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
-                              onClick={() => handleOpenDeleteModal(teacher)}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
 
             {/* Pagination */}
-            {filteredTeachers.length > 0 && (
+            <div className="mt-4">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
-                itemsPerPage={itemsPerPage}
-                totalItems={totalItems}
               />
-            )}
-
-            {/* Teacher Modal */}
-            <TeacherModal
-              isOpen={modalOpen}
-              onClose={handleCloseModal}
-              mode={modalMode}
-              currentTeacher={currentTeacher}
-              onSubmit={handleSubmit}
-              onChange={handleInputChange}
-              departments={departments}
-            />
-
-            {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
-              isOpen={deleteModalOpen}
-              onClose={() => setDeleteModalOpen(false)}
-              onConfirm={handleDelete}
-              title="Archive Teacher"
-              message={`Are you sure you want to archive the teacher "${teacherToDelete?.firstName} ${teacherToDelete?.lastName}"? The teacher will be hidden but can be restored later.`}
-            />
+            </div>
           </main>
         </div>
       </div>
+
+      {/* Teacher Modal */}
+      <TeacherModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        mode={modalMode}
+        teacher={currentTeacher}
+        onSubmit={handleSubmit}
+        onInputChange={handleInputChange}
+        departments={departments}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDelete}
+        title="Archive Teacher"
+        message={`Are you sure you want to archive "${teacherToDelete?.name}"? This action can be undone later.`}
+      />
     </div>
   );
 };

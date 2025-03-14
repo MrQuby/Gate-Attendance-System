@@ -218,8 +218,8 @@ const AdminCourses = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -239,24 +239,27 @@ const AdminCourses = () => {
                         {course.description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-center">
                           <button
                             className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => openModal('view', course)}
+                            title="View Details"
                           >
                             <i className="fas fa-eye"></i>
                           </button>
                           <button
                             className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => openModal('edit', course)}
+                            title="Edit"
                           >
                             <i className="fas fa-edit"></i>
                           </button>
                           <button
                             className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                             onClick={() => openDeleteModal(course)}
+                            title="Archive"
                           >
-                            <i className="fas fa-trash"></i>
+                            <i className="fas fa-archive"></i>
                           </button>
                         </div>
                       </td>
@@ -294,8 +297,8 @@ const AdminCourses = () => {
               isOpen={deleteModal.isOpen}
               onClose={closeDeleteModal}
               onConfirm={() => handleDelete(deleteModal.courseId)}
-              title="Delete Course"
-              message={`Are you sure you want to delete "${deleteModal.courseName}"? This action cannot be undone.`}
+              title="Archive Course"
+              message={`Are you sure you want to archive "${deleteModal.courseName}"? This action can be undone later.`}
             />
           </main>
         </div>

@@ -5,27 +5,24 @@ const TeacherModal = ({
   isOpen, 
   onClose, 
   mode, 
-  currentTeacher, 
+  teacher, 
   onSubmit, 
-  onChange,
-  loading,
+  onInputChange,
   departments = []
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2 transform transition-all">
+      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div>
             <h3 className="text-xl font-bold text-blue-900">
-              {mode === 'add' ? 'Add New Teacher' : 
-               mode === 'edit' ? 'Edit Teacher' : 'Teacher Details'}
+              {mode === 'add' ? 'Add New Teacher' : mode === 'edit' ? 'Edit Teacher' : 'View Teacher'}
             </h3>
             <p className="mt-0.5 text-sm text-gray-500">
-              {mode === 'add' ? 'Create a new teacher account in the system' : 
-               mode === 'edit' ? 'Modify existing teacher details' : 'View teacher information'}
+              {mode === 'add' ? 'Create a new teacher account' : mode === 'edit' ? 'Modify teacher details' : 'View teacher information'}
             </p>
           </div>
           <button 
@@ -51,25 +48,22 @@ const TeacherModal = ({
                 <input
                   type="text"
                   name="teacherId"
-                  value={currentTeacher.teacherId}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
+                  value={teacher.teacherId}
+                  onChange={onInputChange}
                   placeholder="Enter teacher ID"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                   required
+                  disabled={mode === 'view'}
                 />
               </div>
             </div>
 
-            {/* First Name Field */}
+            {/* Name Field */}
             <div className="grid grid-cols-1 gap-2">
               <label className="block text-sm font-semibold text-gray-700">
-                First Name
+                Full Name
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
@@ -78,46 +72,15 @@ const TeacherModal = ({
                 </div>
                 <input
                   type="text"
-                  name="firstName"
-                  value={currentTeacher.firstName}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  placeholder="Enter first name"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                  name="name"
+                  value={teacher.name}
+                  onChange={onInputChange}
+                  placeholder="Enter full name"
+                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                   required
-                />
-              </div>
-            </div>
-
-            {/* Last Name Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Last Name
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-user text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={currentTeacher.lastName}
-                  onChange={onChange}
                   disabled={mode === 'view'}
-                  placeholder="Enter last name"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
                 />
               </div>
             </div>
@@ -135,17 +98,14 @@ const TeacherModal = ({
                 <input
                   type="email"
                   name="email"
-                  value={currentTeacher.email}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
+                  value={teacher.email}
+                  onChange={onInputChange}
                   placeholder="Enter email address"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                   required
+                  disabled={mode === 'view'}
                 />
               </div>
             </div>
@@ -162,16 +122,13 @@ const TeacherModal = ({
                 </div>
                 <select
                   name="department"
-                  value={currentTeacher.department}
-                  onChange={onChange}
-                  disabled={mode === 'view' || loading}
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' || loading
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                  value={teacher.department}
+                  onChange={onInputChange}
+                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                   required
+                  disabled={mode === 'view'}
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
@@ -199,23 +156,11 @@ const TeacherModal = ({
               {mode !== 'view' && (
                 <button
                   type="submit"
-                  disabled={loading}
-                  className={`px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white 
-                    ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} 
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors
-                    flex items-center gap-2`}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
+                    hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                    transition-colors"
                 >
-                  {loading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin"></i>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <i className={`fas ${mode === 'add' ? 'fa-plus' : 'fa-save'}`}></i>
-                      {mode === 'add' ? 'Add Teacher' : 'Save Changes'}
-                    </>
-                  )}
+                  {mode === 'add' ? 'Create Teacher' : 'Update Teacher'}
                 </button>
               )}
             </div>
@@ -230,20 +175,22 @@ TeacherModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   mode: PropTypes.oneOf(['add', 'edit', 'view']).isRequired,
-  currentTeacher: PropTypes.shape({
+  teacher: PropTypes.shape({
+    id: PropTypes.string,
     teacherId: PropTypes.string,
-    firstName: PropTypes.string,
-    lastName: PropTypes.string,
+    name: PropTypes.string,
     email: PropTypes.string,
     department: PropTypes.string,
+    courses: PropTypes.arrayOf(PropTypes.string)
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  loading: PropTypes.bool,
-  departments: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-  })),
+  onInputChange: PropTypes.func.isRequired,
+  departments: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired
+    })
+  )
 };
 
 export default TeacherModal;

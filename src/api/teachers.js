@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 
-const COLLECTION_NAME = 'users';
+const COLLECTION_NAME = 'teachers';
 
 /**
  * @typedef {Object} Teacher
@@ -33,7 +33,7 @@ const COLLECTION_NAME = 'users';
  */
 export const getTeachers = async () => {
   try {
-    const q = query(collection(db, COLLECTION_NAME), where('role', '==', 'teacher'));
+    const q = query(collection(db, COLLECTION_NAME), where('isActive', '==', true));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
@@ -54,7 +54,6 @@ export const addTeacher = async (teacherData) => {
   try {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...teacherData,
-      role: 'teacher',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       isActive: true
@@ -112,7 +111,6 @@ export const subscribeToTeachers = (callback) => {
   try {
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('role', '==', 'teacher'),
       where('isActive', '==', true)
     );
 
