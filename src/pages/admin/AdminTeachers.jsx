@@ -253,36 +253,41 @@ const AdminTeachers = () => {
             </div>
 
             {/* Pagination */}
-            <div className="mt-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
+            {filteredTeachers.length > 0 && (
+              <div className="mt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={totalItems}
+                />
+              </div>
+            )}
+
+            {/* Teacher Modal */}
+            <TeacherModal
+              isOpen={modalOpen}
+              onClose={handleCloseModal}
+              mode={modalMode}
+              teacher={currentTeacher}
+              onSubmit={handleSubmit}
+              onInputChange={handleInputChange}
+              departments={departments}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+              isOpen={deleteModalOpen}
+              onClose={handleDeleteCancel}
+              onConfirm={handleDelete}
+              title="Archive Teacher"
+              message={`Are you sure you want to archive "${teacherToDelete?.name}"? This action can be undone later.`}
+            />
           </main>
         </div>
       </div>
 
-      {/* Teacher Modal */}
-      <TeacherModal
-        isOpen={modalOpen}
-        onClose={handleCloseModal}
-        mode={modalMode}
-        teacher={currentTeacher}
-        onSubmit={handleSubmit}
-        onInputChange={handleInputChange}
-        departments={departments}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={deleteModalOpen}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDelete}
-        title="Archive Teacher"
-        message={`Are you sure you want to archive "${teacherToDelete?.name}"? This action can be undone later.`}
-      />
     </div>
   );
 };

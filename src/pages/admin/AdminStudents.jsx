@@ -287,12 +287,14 @@ const AdminStudents = () => {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {filteredStudents.length > 0 && (
               <div className="mt-4">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
                   onPageChange={handlePageChange}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={totalItems}
                 />
               </div>
             )}
