@@ -8,6 +8,7 @@ import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
+import SearchBar from '../../components/common/SearchBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
@@ -204,22 +205,11 @@ const AdminClasses = () => {
               </div>
 
               <div className="flex gap-2">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search Classes"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-                <button
-                  onClick={handleReset}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
-                >
-                  Reset
-                </button>
+                <SearchBar
+                  placeholder="Search Classes"
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
               </div>
             </div>
 
