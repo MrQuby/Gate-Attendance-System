@@ -3,6 +3,8 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
+import StudentCountChart from '../../components/charts/StudentCountChart';
+import AttendanceChart from '../../components/charts/AttendanceChart';
 
 const AdminDashboard = () => {
   const [totalStudents, setTotalStudents] = useState(0);
@@ -157,13 +159,16 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Activity Section */}
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-4">
-                <p className="text-gray-500 text-center">No recent activity</p>
-              </div>
+          {/* Charts Section */}
+          <div className="grid grid-cols-12 gap-6 mt-8">
+            {/* Student Count Chart */}
+            <div className="col-span-12 md:col-span-4 h-80">
+              <StudentCountChart />
+            </div>
+            
+            {/* Attendance Chart */}
+            <div className="col-span-12 md:col-span-8 h-80">
+              <AttendanceChart />
             </div>
           </div>
         </main>
