@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import { getStudents, deleteStudent, subscribeToStudents, addStudent, updateStudent } from '../../api/students';
+import { getDepartments, subscribeToDepartments } from '../../api/departments';
+import { getCourses, subscribeToCourses } from '../../api/courses';
+import { getClasses, subscribeToClasses } from '../../api/classes';
 import { toast } from 'react-toastify';
 import StudentModal from '../../components/modals/StudentModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
@@ -10,6 +13,9 @@ import Pagination from '../../components/common/Pagination';
 const AdminStudents = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [students, setStudents] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [currentStudent, setCurrentStudent] = useState({
@@ -18,6 +24,7 @@ const AdminStudents = () => {
     email: '',
     department: '',
     course: '',
+    class: '',
     rfidTag: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -25,36 +32,84 @@ const AdminStudents = () => {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [departmentMap, setDepartmentMap] = useState({});
+  const [courseMap, setCourseMap] = useState({});
+  const [classMap, setClassMap] = useState({});
 
   useEffect(() => {
-    // Initial fetch
-    getStudents()
-      .then(data => {
-        setStudents(data);
-      })
-      .catch(error => {
-        console.error('Error fetching students:', error);
-        toast.error('Failed to fetch students');
-      });
-
-    // Set up real-time listener
-    const unsubscribe = subscribeToStudents((updatedStudents) => {
-      console.log('Received real-time update:', updatedStudents);
+    // Set up real-time listener for students
+    const unsubscribeStudents = subscribeToStudents((updatedStudents) => {
       setStudents(updatedStudents);
     });
 
-    // Clean up subscription when component unmounts
-    return () => unsubscribe();
+    // Set up real-time listener for departments
+    const unsubscribeDepartments = subscribeToDepartments((updatedDepartments) => {
+      if (updatedDepartments) {
+        setDepartments(updatedDepartments);
+        
+        // Create department map for display
+        const deptMap = {};
+        updatedDepartments.forEach(dept => {
+          deptMap[dept.id] = dept.name;
+        });
+        setDepartmentMap(deptMap);
+      }
+    });
+
+    // Set up real-time listener for courses
+    const unsubscribeCourses = subscribeToCourses((updatedCourses) => {
+      if (updatedCourses) {
+        setCourses(updatedCourses);
+        
+        // Create course map for display
+        const courseMap = {};
+        updatedCourses.forEach(course => {
+          courseMap[course.id] = {
+            name: course.courseName,
+            code: course.courseId
+          };
+        });
+        setCourseMap(courseMap);
+      }
+    });
+
+    // Set up real-time listener for classes
+    const unsubscribeClasses = subscribeToClasses((updatedClasses) => {
+      if (updatedClasses) {
+        setClasses(updatedClasses);
+        
+        // Create class map for display
+        const classMap = {};
+        updatedClasses.forEach(cls => {
+          classMap[cls.id] = cls.name;
+        });
+        setClassMap(classMap);
+      }
+    });
+
+    // Clean up subscriptions when component unmounts
+    return () => {
+      unsubscribeStudents();
+      unsubscribeDepartments();
+      unsubscribeCourses();
+      unsubscribeClasses();
+    };
   }, []);
 
   const filteredStudents = students.filter((student) => {
     const searchTerm = searchQuery.toLowerCase();
+    const departmentName = departmentMap[student.department] || '';
+    const courseInfo = courseMap[student.course] || {};
+    const courseCode = courseInfo.code || '';
+    const className = classMap[student.class] || '';
+    
     return (
       (student.studentId?.toLowerCase().includes(searchTerm) || '') ||
       (student.name?.toLowerCase().includes(searchTerm) || '') ||
       (student.email?.toLowerCase().includes(searchTerm) || '') ||
-      (student.department?.toLowerCase().includes(searchTerm) || '') ||
-      (student.course?.toLowerCase().includes(searchTerm) || '') ||
+      departmentName.toLowerCase().includes(searchTerm) ||
+      courseCode.toLowerCase().includes(searchTerm) ||
+      className.toLowerCase().includes(searchTerm) ||
       (student.rfidTag?.toLowerCase().includes(searchTerm) || '')
     );
   });
@@ -87,6 +142,7 @@ const AdminStudents = () => {
       email: '',
       department: '',
       course: '',
+      class: '',
       rfidTag: '',
     });
     setIsModalOpen(true);
@@ -100,6 +156,7 @@ const AdminStudents = () => {
       email: '',
       department: '',
       course: '',
+      class: '',
       rfidTag: '',
     });
   };
@@ -171,6 +228,14 @@ const AdminStudents = () => {
                   <i className="fas fa-plus"></i>
                   Add Student
                 </button>
+                <div className="relative">
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    Bulk Actions
+                    <i className="fas fa-chevron-down"></i>
+                  </button>
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -217,6 +282,9 @@ const AdminStudents = () => {
                       Course
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Class
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       RFID Tag
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
@@ -240,10 +308,13 @@ const AdminStudents = () => {
                         {student.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.department}
+                        {departmentMap[student.department] || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.course}
+                        {courseMap[student.course]?.code || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {classMap[student.class] || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {student.rfidTag}
@@ -275,9 +346,9 @@ const AdminStudents = () => {
                       </td>
                     </tr>
                   ))}
-                  {filteredStudents.length === 0 && (
+                  {currentItems.length === 0 && (
                     <tr>
-                      <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
                         No students found
                       </td>
                     </tr>
@@ -288,15 +359,13 @@ const AdminStudents = () => {
 
             {/* Pagination */}
             {filteredStudents.length > 0 && (
-              <div className="mt-4">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  itemsPerPage={itemsPerPage}
-                  totalItems={totalItems}
-                />
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+              />
             )}
           </main>
         </div>
@@ -306,8 +375,8 @@ const AdminStudents = () => {
       <StudentModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        currentStudent={currentStudent}
         mode={modalMode}
+        currentStudent={currentStudent}
         onSubmit={handleSubmit}
         onChange={handleChange}
         loading={isLoading}
@@ -319,7 +388,7 @@ const AdminStudents = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDelete}
         title="Archive Student"
-        message="Are you sure you want to archive this student? This action will remove them from active students but their data will be preserved."
+        message={`Are you sure you want to archive ${studentToDelete?.name}? This student will be hidden from the system but can be restored later.`}
       />
     </div>
   );

@@ -12,6 +12,7 @@ import AdminStudents from './pages/admin/AdminStudents';
 import AdminTeachers from './pages/admin/AdminTeachers';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminDepartments from './pages/admin/AdminDepartments';
+import AdminClasses from './pages/admin/AdminClasses';
 import './App.css';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path="/admin/teachers" element={<AdminTeachers />} />
         <Route path="/admin/departments" element={<AdminDepartments />} />
         <Route path="/admin/courses" element={<AdminCourses />} />
+        <Route path="/admin/classes" element={<AdminClasses />} />
         
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />

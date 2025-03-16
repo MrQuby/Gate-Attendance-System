@@ -22,6 +22,7 @@ const COLLECTION_NAME = 'teachers';
  * @property {string} email - The teacher's email address
  * @property {string} department - The department ID this teacher belongs to
  * @property {string[]} courses - Array of course IDs this teacher handles
+ * @property {string[]} classes - Array of class IDs this teacher is assigned to
  * @property {Date} createdAt - When the teacher record was created
  * @property {Date} updatedAt - When the teacher record was last updated
  * @property {boolean} isActive - Whether the teacher is active or not

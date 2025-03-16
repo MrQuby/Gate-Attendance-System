@@ -5,13 +5,14 @@ const COLLECTION_NAME = 'students';
 
 /**
  * @typedef {Object} Student
- * @property {string} id - The unique identifier
- * @property {string} studentId - The student's ID number
- * @property {string} name - The student's full name
- * @property {string} email - The student's email address
- * @property {string} department - The department this student belongs to
- * @property {string} course - The course this student is enrolled in
- * @property {string} rfidTag - The student's RFID tag number
+ * @property {string} id - Student document ID
+ * @property {string} studentId - Student ID number
+ * @property {string} name - Student name
+ * @property {string} email - Student email
+ * @property {string} department - Student department ID
+ * @property {string} course - Student course ID
+ * @property {string} class - Student class ID
+ * @property {string} rfidTag - Student RFID tag
  * @property {Date} createdAt - When the student record was created
  * @property {Date} updatedAt - When the student record was last updated
  * @property {Date|null} deletedAt - When the student was soft deleted, null if active
@@ -250,6 +251,68 @@ export const subscribeToStudentsByCourse = (course, onUpdate) => {
     });
   } catch (error) {
     console.error('Error setting up students by course subscription:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get students by class
+ * @param {string} classId - The class to filter by
+ * @returns {Promise<Student[]>} Array of active students in the class
+ */
+export const getStudentsByClass = async (classId) => {
+  try {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('class', '==', classId),
+      where('deletedAt', '==', null)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const students = [];
+    
+    querySnapshot.forEach((doc) => {
+      students.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return students;
+  } catch (error) {
+    console.error('Error getting students by class:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to real-time updates for students in a specific class
+ * @param {string} classId - The class to filter by
+ * @param {function} onUpdate - Callback function to handle updates
+ * @returns {function} Unsubscribe function
+ */
+export const subscribeToStudentsByClass = (classId, onUpdate) => {
+  try {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('class', '==', classId),
+      where('deletedAt', '==', null)
+    );
+    
+    return onSnapshot(q, (querySnapshot) => {
+      const students = [];
+      
+      querySnapshot.forEach((doc) => {
+        students.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      onUpdate(students);
+    });
+  } catch (error) {
+    console.error('Error subscribing to students by class:', error);
     throw error;
   }
 };

@@ -1,5 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { getDepartments, subscribeToDepartments } from '../../api/departments';
+import { 
+  getCourses, 
+  subscribeToCourses, 
+  getCoursesByDepartment, 
+  subscribeToCoursesByDepartment 
+} from '../../api/courses';
+import { 
+  getClasses, 
+  subscribeToClasses, 
+  getClassesByCourse, 
+  subscribeToClassesByCourse 
+} from '../../api/classes';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const StudentModal = ({ 
   isOpen, 
@@ -10,6 +25,117 @@ const StudentModal = ({
   onChange,
   loading 
 }) => {
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+  const [classesLoading, setClassesLoading] = useState(false);
+
+  // Load departments
+  useEffect(() => {
+    let departmentsUnsubscribe = null;
+
+    if (isOpen) {
+      setDepartmentsLoading(true);
+      
+      // Set up real-time listener for departments
+      departmentsUnsubscribe = subscribeToDepartments((updatedDepartments) => {
+        if (updatedDepartments) {
+          setDepartments(updatedDepartments);
+          setDepartmentsLoading(false);
+        }
+      });
+    }
+
+    // Clean up subscription when component unmounts or modal closes
+    return () => {
+      if (departmentsUnsubscribe) departmentsUnsubscribe();
+    };
+  }, [isOpen]);
+
+  // Load courses based on selected department
+  useEffect(() => {
+    let coursesUnsubscribe = null;
+
+    if (isOpen && currentStudent.department) {
+      setCoursesLoading(true);
+      
+      // Set up real-time listener for courses filtered by department
+      coursesUnsubscribe = subscribeToCoursesByDepartment(
+        currentStudent.department,
+        (filteredCourses) => {
+          if (filteredCourses) {
+            setCourses(filteredCourses);
+            setCoursesLoading(false);
+          }
+        }
+      );
+    } else {
+      setCourses([]);
+    }
+
+    // Clean up subscription when component unmounts or modal closes
+    return () => {
+      if (coursesUnsubscribe) coursesUnsubscribe();
+    };
+  }, [isOpen, currentStudent.department]);
+
+  // Load classes based on selected course
+  useEffect(() => {
+    let classesUnsubscribe = null;
+
+    if (isOpen && currentStudent.course) {
+      setClassesLoading(true);
+      
+      // Set up real-time listener for classes filtered by course
+      classesUnsubscribe = subscribeToClassesByCourse(
+        currentStudent.course,
+        (filteredClasses) => {
+          if (filteredClasses) {
+            setClasses(filteredClasses);
+            setClassesLoading(false);
+          }
+        }
+      );
+    } else {
+      setClasses([]);
+    }
+
+    // Clean up subscription when component unmounts or modal closes
+    return () => {
+      if (classesUnsubscribe) classesUnsubscribe();
+    };
+  }, [isOpen, currentStudent.course]);
+
+  const handleLocalChange = (e) => {
+    const { name, value } = e.target;
+    
+    // If department changes, reset course and class
+    if (name === 'department' && value !== currentStudent.department) {
+      onChange({
+        target: { name, value }
+      });
+      onChange({
+        target: { name: 'course', value: '' }
+      });
+      onChange({
+        target: { name: 'class', value: '' }
+      });
+    } 
+    // If course changes, reset class
+    else if (name === 'course' && value !== currentStudent.course) {
+      onChange({
+        target: { name, value }
+      });
+      onChange({
+        target: { name: 'class', value: '' }
+      });
+    } else {
+      onChange(e);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -50,7 +176,7 @@ const StudentModal = ({
                 <input
                   type="text"
                   name="studentId"
-                  value={currentStudent.studentId}
+                  value={currentStudent.studentId || ''}
                   onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter student ID"
@@ -78,7 +204,7 @@ const StudentModal = ({
                 <input
                   type="text"
                   name="name"
-                  value={currentStudent.name}
+                  value={currentStudent.name || ''}
                   onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter full name"
@@ -106,7 +232,7 @@ const StudentModal = ({
                 <input
                   type="email"
                   name="email"
-                  value={currentStudent.email}
+                  value={currentStudent.email || ''}
                   onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter email address"
@@ -131,24 +257,33 @@ const StudentModal = ({
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i className="fas fa-building text-gray-400"></i>
                 </div>
-                <select
-                  name="department"
-                  value={currentStudent.department}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  <option value="college">College</option>
-                  <option value="senior_high">Senior High</option>
-                  <option value="junior_high">Junior High</option>
-                </select>
+                {departmentsLoading ? (
+                  <div className="flex items-center pl-10 py-2.5">
+                    <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                    <span>Loading departments...</span>
+                  </div>
+                ) : (
+                  <select
+                    name="department"
+                    value={currentStudent.department || ''}
+                    onChange={handleLocalChange}
+                    disabled={mode === 'view'}
+                    className={`pl-10 w-full rounded-lg border ${
+                      mode === 'view' 
+                        ? 'bg-gray-50 text-gray-500' 
+                        : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                    } border-gray-300 shadow-sm p-2.5 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
@@ -162,22 +297,86 @@ const StudentModal = ({
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i className="fas fa-graduation-cap text-gray-400"></i>
                 </div>
-                <input
-                  type="text"
-                  name="course"
-                  value={currentStudent.course}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  placeholder="Enter course"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
-                />
+                {coursesLoading ? (
+                  <div className="flex items-center pl-10 py-2.5">
+                    <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                    <span>Loading courses...</span>
+                  </div>
+                ) : (
+                  <select
+                    name="course"
+                    value={currentStudent.course || ''}
+                    onChange={handleLocalChange}
+                    disabled={mode === 'view' || !currentStudent.department}
+                    className={`pl-10 w-full rounded-lg border ${
+                      mode === 'view' || !currentStudent.department
+                        ? 'bg-gray-50 text-gray-500' 
+                        : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                    } border-gray-300 shadow-sm p-2.5 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    required
+                  >
+                    <option value="">Select Course</option>
+                    {courses.map(course => (
+                      <option key={course.id} value={course.id}>
+                        {course.courseId} - {course.courseName}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
+              {!currentStudent.department && mode !== 'view' && (
+                <p className="text-sm text-gray-500">Please select a department first</p>
+              )}
+              {currentStudent.department && courses.length === 0 && !coursesLoading && mode !== 'view' && (
+                <p className="text-sm text-red-500">No courses found for this department</p>
+              )}
+            </div>
+            
+            {/* Class Field */}
+            <div className="grid grid-cols-1 gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Class
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i className="fas fa-users text-gray-400"></i>
+                </div>
+                {classesLoading ? (
+                  <div className="flex items-center pl-10 py-2.5">
+                    <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                    <span>Loading classes...</span>
+                  </div>
+                ) : (
+                  <select
+                    name="class"
+                    value={currentStudent.class || ''}
+                    onChange={handleLocalChange}
+                    disabled={mode === 'view' || !currentStudent.course}
+                    className={`pl-10 w-full rounded-lg border ${
+                      mode === 'view' || !currentStudent.course
+                        ? 'bg-gray-50 text-gray-500' 
+                        : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                    } border-gray-300 shadow-sm p-2.5 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    required
+                  >
+                    <option value="">Select Class</option>
+                    {classes.map(cls => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              {!currentStudent.course && mode !== 'view' && (
+                <p className="text-sm text-gray-500">Please select a course first</p>
+              )}
+              {currentStudent.course && classes.length === 0 && !classesLoading && mode !== 'view' && (
+                <p className="text-sm text-red-500">No classes found for this course</p>
+              )}
             </div>
 
             {/* RFID Tag Field */}
@@ -193,7 +392,7 @@ const StudentModal = ({
                 <input
                   type="text"
                   name="rfidTag"
-                  value={currentStudent.rfidTag}
+                  value={currentStudent.rfidTag || ''}
                   onChange={onChange}
                   disabled={mode === 'view'}
                   placeholder="Enter RFID tag"
@@ -211,52 +410,35 @@ const StudentModal = ({
 
           {/* Modal Footer */}
           <div className="mt-6 pt-4 border-t border-gray-200">
-            {mode !== 'view' ? (
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
-                    hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
-                    transition-colors"
-                >
-                  Cancel
-                </button>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
+                  hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
+                  transition-colors"
+              >
+                {mode === 'view' ? 'Close' : 'Cancel'}
+              </button>
+              {mode !== 'view' && (
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white 
-                    ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} 
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors
-                    flex items-center gap-2`}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg 
+                    shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                    transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {loading ? (
                     <>
-                      <i className="fas fa-spinner fa-spin"></i>
-                      Processing...
+                      <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                      Saving...
                     </>
                   ) : (
-                    <>
-                      <i className={`fas ${mode === 'add' ? 'fa-plus' : 'fa-save'}`}></i>
-                      {mode === 'add' ? 'Add Student' : 'Save Changes'}
-                    </>
+                    'Save'
                   )}
                 </button>
-              </div>
-            ) : (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2.5 bg-gray-800 text-white rounded-lg shadow-sm text-sm font-medium 
-                    hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
-                    transition-colors flex items-center gap-2"
-                >
-                  <i className="fas fa-times"></i>
-                  Close
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </form>
       </div>
@@ -269,16 +451,18 @@ StudentModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   mode: PropTypes.oneOf(['add', 'edit', 'view']).isRequired,
   currentStudent: PropTypes.shape({
+    id: PropTypes.string,
     studentId: PropTypes.string,
     name: PropTypes.string,
     email: PropTypes.string,
     department: PropTypes.string,
     course: PropTypes.string,
-    rfidTag: PropTypes.string,
-  }).isRequired,
+    class: PropTypes.string,
+    rfidTag: PropTypes.string
+  }),
   onSubmit: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired,
+  loading: PropTypes.bool
 };
 
 export default StudentModal;

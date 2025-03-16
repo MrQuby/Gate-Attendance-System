@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { getClasses } from '../../api/classes';
+import { getCourses } from '../../api/courses';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const TeacherModal = ({ 
   isOpen, 
@@ -10,6 +14,117 @@ const TeacherModal = ({
   onInputChange,
   departments = []
 }) => {
+  const [classes, setClasses] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedClasses, setSelectedClasses] = useState([]);
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [classesByCourse, setClassesByCourse] = useState({});
+  
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
+  
+  useEffect(() => {
+    if (teacher.classes) {
+      setSelectedClasses(teacher.classes);
+      
+      // Determine selected courses based on selected classes
+      if (classes.length > 0) {
+        const coursesSet = new Set();
+        teacher.classes.forEach(classId => {
+          const classItem = classes.find(c => c.id === classId);
+          if (classItem && classItem.courseId) {
+            coursesSet.add(classItem.courseId);
+          }
+        });
+        setSelectedCourses(Array.from(coursesSet));
+      }
+    } else {
+      setSelectedClasses([]);
+      setSelectedCourses([]);
+    }
+  }, [teacher.classes, classes]);
+  
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch courses
+      const coursesData = await getCourses();
+      setCourses(coursesData);
+      
+      // Fetch classes
+      const classesData = await getClasses();
+      setClasses(classesData);
+      
+      // Group classes by course
+      const groupedClasses = {};
+      classesData.forEach(classItem => {
+        const courseId = classItem.courseId;
+        if (!groupedClasses[courseId]) {
+          groupedClasses[courseId] = [];
+        }
+        groupedClasses[courseId].push(classItem);
+      });
+      
+      setClassesByCourse(groupedClasses);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCourseChange = (e) => {
+    const courseId = e.target.value;
+    let updatedCourses;
+    
+    if (e.target.checked) {
+      updatedCourses = [...selectedCourses, courseId];
+    } else {
+      updatedCourses = selectedCourses.filter(id => id !== courseId);
+      
+      // Remove classes from this course from selected classes
+      const classesFromCourse = classesByCourse[courseId] || [];
+      const classIdsFromCourse = classesFromCourse.map(c => c.id);
+      const updatedClasses = selectedClasses.filter(id => !classIdsFromCourse.includes(id));
+      
+      setSelectedClasses(updatedClasses);
+      onInputChange({
+        target: {
+          name: 'classes',
+          value: updatedClasses
+        }
+      });
+    }
+    
+    setSelectedCourses(updatedCourses);
+  };
+  
+  const handleClassChange = (e) => {
+    const classId = e.target.value;
+    let updatedClasses;
+    
+    if (e.target.checked) {
+      updatedClasses = [...selectedClasses, classId];
+    } else {
+      updatedClasses = selectedClasses.filter(id => id !== classId);
+    }
+    
+    setSelectedClasses(updatedClasses);
+    
+    // Update the teacher object with the new classes
+    onInputChange({
+      target: {
+        name: 'classes',
+        value: updatedClasses
+      }
+    });
+  };
+  
   if (!isOpen) return null;
 
   return (
@@ -139,6 +254,107 @@ const TeacherModal = ({
                 </select>
               </div>
             </div>
+            
+            {/* Courses Field */}
+            <div className="grid grid-cols-1 gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Assigned Courses
+              </label>
+              {loading ? (
+                <div className="flex items-center justify-center p-4 border rounded-lg">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                  <span>Loading courses...</span>
+                </div>
+              ) : (
+                <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
+                  {courses.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {courses.map(course => {
+                        const isChecked = selectedCourses.includes(course.id);
+                        return (
+                          <div key={course.id} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id={`course-${course.id}`}
+                              value={course.id}
+                              checked={isChecked}
+                              onChange={handleCourseChange}
+                              disabled={mode === 'view'}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor={`course-${course.id}`}
+                              className="ml-2 block text-sm text-gray-700"
+                            >
+                              {course.courseId}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No courses available</p>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Classes Field */}
+            <div className="grid grid-cols-1 gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Assigned Classes
+              </label>
+              {loading ? (
+                <div className="flex items-center justify-center p-4 border rounded-lg">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                  <span>Loading classes...</span>
+                </div>
+              ) : (
+                <div className="border rounded-lg p-3 max-h-60 overflow-y-auto">
+                  {selectedCourses.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedCourses.map(courseId => {
+                        const course = courses.find(c => c.id === courseId);
+                        const courseClasses = classesByCourse[courseId] || [];
+                        if (!course || courseClasses.length === 0) return null;
+                        
+                        return (
+                          <div key={courseId} className="border-b pb-2 last:border-b-0 last:pb-0">
+                            <h4 className="font-medium text-gray-700 mb-2">{course.courseId}</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {courseClasses.map(classItem => {
+                                const isChecked = selectedClasses.includes(classItem.id);
+                                return (
+                                  <div key={classItem.id} className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`class-${classItem.id}`}
+                                      value={classItem.id}
+                                      checked={isChecked}
+                                      onChange={handleClassChange}
+                                      disabled={mode === 'view'}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label
+                                      htmlFor={`class-${classItem.id}`}
+                                      className="ml-2 block text-sm text-gray-700"
+                                    >
+                                      {classItem.name}
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Please select courses first to view available classes</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Modal Footer */}
@@ -181,7 +397,8 @@ TeacherModal.propTypes = {
     name: PropTypes.string,
     email: PropTypes.string,
     department: PropTypes.string,
-    courses: PropTypes.arrayOf(PropTypes.string)
+    courses: PropTypes.arrayOf(PropTypes.string),
+    classes: PropTypes.arrayOf(PropTypes.string)
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   onInputChange: PropTypes.func.isRequired,
