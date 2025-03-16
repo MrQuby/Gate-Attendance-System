@@ -16,13 +16,11 @@ const AdminHeader = ({ title }) => {
   }).toUpperCase();
 
   return (
-    <header className="bg-white shadow">
-      <div className="flex justify-between items-center px-8 py-4">
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <div className="text-right">
-          <div className="text-gray-600 font-semibold">{formattedDate}</div>
-          <div className="text-gray-500">{formattedTime}</div>
-        </div>
+    <header className="flex items-center justify-between p-4">
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="text-right">
+        <div className="text-gray-600 font-semibold">{formattedDate}</div>
+        <div className="text-gray-500">{formattedTime}</div>
       </div>
     </header>
   );

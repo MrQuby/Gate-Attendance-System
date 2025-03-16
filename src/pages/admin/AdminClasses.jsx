@@ -9,8 +9,6 @@ import AdminHeader from '../../components/layout/AdminHeader';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
 import SearchBar from '../../components/common/SearchBar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const AdminClasses = () => {
   const [classes, setClasses] = useState([]);
@@ -179,157 +177,154 @@ const AdminClasses = () => {
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-[#F7F8FA] overflow-scroll flex flex-col">
         <AdminHeader title="Class Management" />
       
-        <div className="flex-1 overflow-auto">
-          <main className="p-8">
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleOpenModal('add')}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
-                >
-                  <i className="fas fa-plus"></i>
-                  Add Class
-                </button>
-                <div className="relative">
-                  <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                  >
-                    Bulk Actions
-                    <i className="fas fa-chevron-down"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <SearchBar
-                  placeholder="Search Classes"
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                />
+        <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <div className="relative">
+                <h1 className="hidden md:block text-lg font-semibold">All Classes</h1>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      #
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Class Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Year Level
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Course
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Capacity
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.map((classItem, index) => (
-                    <tr 
-                      key={classItem.id} 
-                      className="hover:bg-lamaPurpleLight"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                        {indexOfFirstItem + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {classItem.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{classItem.yearLevel}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {courseMap[classItem.courseId] 
-                            ? `${courseMap[classItem.courseId].name} (${courseMap[classItem.courseId].code})` 
-                            : '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {departmentMap[classItem.departmentId] || '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{classItem.capacity}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenModal('view', classItem)}
-                            title="View Details"
-                          >
-                            <i className="fas fa-eye"></i>
-                          </button>
-                          <button
-                            className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenModal('edit', classItem)}
-                            title="Edit"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
-                            onClick={() => handleOpenDeleteModal(classItem)}
-                            title="Archive"
-                          >
-                            <i className="fas fa-archive"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredClasses.length === 0 && (
-                    <tr>
-                      <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No classes found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {filteredClasses.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                itemsPerPage={itemsPerPage}
-                totalItems={totalItems}
+            <div className="flex gap-2">
+              <SearchBar
+                placeholder="Search Classes"
+                value={searchQuery}
+                onChange={setSearchQuery}
               />
-            )}
-
-            <ClassModal
-              isOpen={isModalOpen}
-              onClose={handleCloseModal}
-              mode={modalMode}
-              currentClass={currentClass}
-              onSubmit={handleSubmit}
-              onChange={handleInputChange}
-            />
+              <button
+                onClick={() => handleOpenModal('add')}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <i className="fas fa-plus"></i>
+                Add Class
+              </button>
+            </div>
+          </div>
+          <main className="w-full mt-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Class Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Year Level
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Course
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Capacity
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {currentItems.map((classItem, index) => (
+                  <tr 
+                    key={classItem.id} 
+                    className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {indexOfFirstItem + index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        {classItem.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">{classItem.yearLevel}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        {courseMap[classItem.courseId] 
+                          ? `${courseMap[classItem.courseId].name} (${courseMap[classItem.courseId].code})` 
+                          : '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        {departmentMap[classItem.departmentId] || '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">{classItem.capacity}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
+                          onClick={() => handleOpenModal('view', classItem)}
+                          title="View Details"
+                        >
+                          <i className="fas fa-eye"></i>
+                        </button>
+                        <button
+                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
+                          onClick={() => handleOpenModal('edit', classItem)}
+                          title="Edit"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
+                          onClick={() => handleOpenDeleteModal(classItem)}
+                          title="Archive"
+                        >
+                          <i className="fas fa-archive"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {currentItems.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      No classes found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-gray-200">
+                  <td colSpan="7" className="px-6 py-2"></td>
+                </tr>
+              </tfoot>
+            </table>
           </main>
+
+          {/* Pagination */}
+          {filteredClasses.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+            />
+          )}
+
+          <ClassModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            mode={modalMode}
+            currentClass={currentClass}
+            onSubmit={handleSubmit}
+            onChange={handleInputChange}
+          />
         </div>
       </div>
 
