@@ -261,29 +261,29 @@ const AdminStudents = () => {
               </button>
             </div>
           </div>
-          <main className="w-full mt-4">
+          <main className="w-full mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Student
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Student ID
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Department
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Course
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     RFID Tag
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
@@ -294,7 +294,7 @@ const AdminStudents = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentItems.map((student, index) => (
                   <tr key={student.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium hidden sm:table-cell">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -309,22 +309,25 @@ const AdminStudents = () => {
                           <div className="text-xs text-gray-500">
                             {classMap[student.class] || '-'}
                           </div>
+                          <div className="text-xs text-gray-500 md:hidden">
+                            {student.studentId}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                       {student.studentId}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                       {student.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       {departmentMap[student.department] || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       {courseMap[student.course]?.code || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       {student.rfidTag}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -400,7 +403,7 @@ const AdminStudents = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDelete}
         title="Archive Student"
-        message={`Are you sure you want to archive ${studentToDelete?.name}? This student will be hidden from the system but can be restored later.`}
+        message={`Are you sure you want to archive ${studentToDelete?.firstName} ${studentToDelete?.lastName}? This student will be hidden from the system but can be restored later.`}
       />
     </div>
   );
