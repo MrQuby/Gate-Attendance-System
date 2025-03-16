@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import AdminSidebar from '../../components/layout/AdminSidebar';
+import AdminHeader from '../../components/layout/AdminHeader';
 
 const AdminDashboard = () => {
   const [totalStudents, setTotalStudents] = useState(0);
@@ -62,17 +63,9 @@ const AdminDashboard = () => {
       <AdminSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-[#F7F8FA] overflow-scroll flex flex-col">
         {/* Header */}
-        <header className="bg-white shadow">
-          <div className="flex justify-between items-center px-8 py-4">
-            <h2 className="text-xl font-semibold">Welcome back, ADMIN</h2>
-            <div className="text-right">
-              <div className="text-gray-600 font-semibold">{formattedDate}</div>
-              <div className="text-gray-500">{formattedTime}</div>
-            </div>
-          </div>
-        </header>
+        <AdminHeader title="Dashboard" />
 
         <main className="p-8">
           <h1 className="text-2xl font-bold mb-6">Dashboard</h1>

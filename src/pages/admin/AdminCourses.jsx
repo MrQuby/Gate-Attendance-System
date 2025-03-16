@@ -173,10 +173,9 @@ const AdminCourses = () => {
               />
               <button
                 onClick={() => openModal('add')}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-3xl hover:bg-emerald-700 flex items-center gap-2"
               >
                 <i className="fas fa-plus"></i>
-                Add Course
               </button>
             </div>
           </div>
