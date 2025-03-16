@@ -292,7 +292,7 @@ const AdminTeachers = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentTeachers.map((teacher, index) => (
-                    <tr key={teacher.id} className="hover:bg-gray-50">
+                    <tr key={teacher.id} className="hover:bg-lamaPurpleLight">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                         {indexOfFirstTeacher + index + 1}
                       </td>

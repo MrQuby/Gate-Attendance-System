@@ -280,7 +280,7 @@ const AdminStudents = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentItems.map((student, index) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
+                    <tr key={student.id} className="hover:bg-lamaPurpleLight">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>

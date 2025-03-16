@@ -5,6 +5,11 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        lamaPurpleLight: '#f3f0ff',
+        lamaPurple: '#8a70d6',
+        lamaPurpleDark: '#6c4dc3',
+      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },

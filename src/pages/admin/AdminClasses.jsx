@@ -244,7 +244,7 @@ const AdminClasses = () => {
                   {currentItems.map((classItem, index) => (
                     <tr 
                       key={classItem.id} 
-                      className="hover:bg-gray-50"
+                      className="hover:bg-lamaPurpleLight"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                         {indexOfFirstItem + index + 1}
