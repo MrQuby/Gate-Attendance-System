@@ -7,7 +7,8 @@ const COLLECTION_NAME = 'students';
  * @typedef {Object} Student
  * @property {string} id - Student document ID
  * @property {string} studentId - Student ID number
- * @property {string} name - Student name
+ * @property {string} firstName - Student first name
+ * @property {string} lastName - Student last name
  * @property {string} email - Student email
  * @property {string} department - Student department ID
  * @property {string} course - Student course ID
@@ -56,10 +57,21 @@ export const subscribeToStudents = (onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const students = snapshot.docs.map(doc => {
+        const data = doc.data();
+        
+        // Handle legacy data that might have 'name' instead of firstName/lastName
+        if (data.name && (!data.firstName || !data.lastName)) {
+          const nameParts = data.name.split(' ');
+          data.firstName = nameParts[0] || '';
+          data.lastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        return {
+          id: doc.id,
+          ...data
+        };
+      });
       console.log('Received students update:', students);
       onUpdate(students);
     }, (error) => {
@@ -101,12 +113,12 @@ export const addStudent = async (studentData) => {
 export const updateStudent = async (id, studentData) => {
   try {
     const studentRef = doc(db, COLLECTION_NAME, id);
-    const dataWithTimestamp = {
+    const updateData = {
       ...studentData,
       updatedAt: serverTimestamp()
     };
-    await updateDoc(studentRef, dataWithTimestamp);
-    return { id, ...dataWithTimestamp };
+    await updateDoc(studentRef, updateData);
+    return { id, ...updateData };
   } catch (error) {
     console.error('Error updating student:', error);
     throw error;
@@ -212,13 +224,22 @@ export const subscribeToStudentsByDepartment = (department, onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const students = snapshot.docs.map(doc => {
+        const data = doc.data();
+        
+        // Handle legacy data that might have 'name' instead of firstName/lastName
+        if (data.name && (!data.firstName || !data.lastName)) {
+          const nameParts = data.name.split(' ');
+          data.firstName = nameParts[0] || '';
+          data.lastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        return {
+          id: doc.id,
+          ...data
+        };
+      });
       onUpdate(students);
-    }, (error) => {
-      console.error('Error in students by department subscription:', error);
     });
   } catch (error) {
     console.error('Error setting up students by department subscription:', error);
@@ -241,13 +262,22 @@ export const subscribeToStudentsByCourse = (course, onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const students = snapshot.docs.map(doc => {
+        const data = doc.data();
+        
+        // Handle legacy data that might have 'name' instead of firstName/lastName
+        if (data.name && (!data.firstName || !data.lastName)) {
+          const nameParts = data.name.split(' ');
+          data.firstName = nameParts[0] || '';
+          data.lastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        return {
+          id: doc.id,
+          ...data
+        };
+      });
       onUpdate(students);
-    }, (error) => {
-      console.error('Error in students by course subscription:', error);
     });
   } catch (error) {
     console.error('Error setting up students by course subscription:', error);
@@ -264,23 +294,27 @@ export const getStudentsByClass = async (classId) => {
   try {
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('class', '==', classId),
-      where('deletedAt', '==', null)
+      where('deletedAt', '==', null),
+      where('class', '==', classId)
     );
-    
     const querySnapshot = await getDocs(q);
-    const students = [];
-    
-    querySnapshot.forEach((doc) => {
-      students.push({
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      
+      // Handle legacy data that might have 'name' instead of firstName/lastName
+      if (data.name && (!data.firstName || !data.lastName)) {
+        const nameParts = data.name.split(' ');
+        data.firstName = nameParts[0] || '';
+        data.lastName = nameParts.slice(1).join(' ') || '';
+      }
+      
+      return {
         id: doc.id,
-        ...doc.data()
-      });
+        ...data
+      };
     });
-    
-    return students;
   } catch (error) {
-    console.error('Error getting students by class:', error);
+    console.error('Error fetching students by class:', error);
     throw error;
   }
 };
@@ -295,24 +329,30 @@ export const subscribeToStudentsByClass = (classId, onUpdate) => {
   try {
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('class', '==', classId),
-      where('deletedAt', '==', null)
+      where('deletedAt', '==', null),
+      where('class', '==', classId)
     );
-    
-    return onSnapshot(q, (querySnapshot) => {
-      const students = [];
-      
-      querySnapshot.forEach((doc) => {
-        students.push({
+
+    return onSnapshot(q, (snapshot) => {
+      const students = snapshot.docs.map(doc => {
+        const data = doc.data();
+        
+        // Handle legacy data that might have 'name' instead of firstName/lastName
+        if (data.name && (!data.firstName || !data.lastName)) {
+          const nameParts = data.name.split(' ');
+          data.firstName = nameParts[0] || '';
+          data.lastName = nameParts.slice(1).join(' ') || '';
+        }
+        
+        return {
           id: doc.id,
-          ...doc.data()
-        });
+          ...data
+        };
       });
-      
       onUpdate(students);
     });
   } catch (error) {
-    console.error('Error subscribing to students by class:', error);
+    console.error('Error setting up students by class subscription:', error);
     throw error;
   }
 };

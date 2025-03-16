@@ -21,7 +21,8 @@ const AdminStudents = () => {
   const [modalMode, setModalMode] = useState('add');
   const [currentStudent, setCurrentStudent] = useState({
     studentId: '',
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     department: '',
     course: '',
@@ -103,10 +104,13 @@ const AdminStudents = () => {
     const courseInfo = courseMap[student.course] || {};
     const courseCode = courseInfo.code || '';
     const className = classMap[student.class] || '';
+    const fullName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
     
     return (
       (student.studentId?.toLowerCase().includes(searchTerm) || '') ||
-      (student.name?.toLowerCase().includes(searchTerm) || '') ||
+      (fullName.toLowerCase().includes(searchTerm)) ||
+      (student.firstName?.toLowerCase().includes(searchTerm) || '') ||
+      (student.lastName?.toLowerCase().includes(searchTerm) || '') ||
       (student.email?.toLowerCase().includes(searchTerm) || '') ||
       departmentName.toLowerCase().includes(searchTerm) ||
       courseCode.toLowerCase().includes(searchTerm) ||
@@ -135,7 +139,8 @@ const AdminStudents = () => {
     setModalMode(mode);
     setCurrentStudent(student || {
       studentId: '',
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       department: '',
       course: '',
@@ -149,7 +154,8 @@ const AdminStudents = () => {
     setIsModalOpen(false);
     setCurrentStudent({
       studentId: '',
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       department: '',
       course: '',
@@ -206,6 +212,25 @@ const AdminStudents = () => {
     }
   };
 
+  // Helper function to get profile initials
+  const getProfileInitials = (firstName, lastName) => {
+    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return firstInitial + lastInitial;
+  };
+
+  // Helper function to get background color based on name
+  const getProfileColor = (firstName, lastName) => {
+    const colors = [
+      'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 
+      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    
+    const fullName = `${firstName}${lastName}`;
+    const charCodeSum = fullName.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return colors[charCodeSum % colors.length];
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
@@ -244,10 +269,10 @@ const AdminStudents = () => {
                     #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Student ID
+                    Student
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
+                    Student ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
@@ -257,9 +282,6 @@ const AdminStudents = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Course
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Class
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     RFID Tag
@@ -275,11 +297,23 @@ const AdminStudents = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {student.studentId}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(student.firstName, student.lastName)}`}>
+                          {getProfileInitials(student.firstName, student.lastName)}
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">
+                            {student.firstName} {student.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {classMap[student.class] || '-'}
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {student.name}
+                      {student.studentId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {student.email}
@@ -291,30 +325,27 @@ const AdminStudents = () => {
                       {courseMap[student.course]?.code || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {classMap[student.class] || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {student.rfidTag}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2 justify-center">
                         <button
-                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenModal('view', student)}
-                          title="View Details"
+                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
+                          title="View"
                         >
                           <i className="fas fa-eye"></i>
                         </button>
                         <button
-                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenModal('edit', student)}
+                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           title="Edit"
                         >
                           <i className="fas fa-edit"></i>
                         </button>
                         <button
-                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenDeleteModal(student)}
+                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                           title="Archive"
                         >
                           <i className="fas fa-archive"></i>

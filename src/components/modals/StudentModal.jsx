@@ -191,31 +191,62 @@ const StudentModal = ({
               </div>
             </div>
 
-            {/* Name Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Full Name
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-user text-gray-400"></i>
+            {/* First Name and Last Name Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* First Name Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  First Name
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fas fa-user text-gray-400"></i>
+                  </div>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={currentStudent.firstName || ''}
+                    onChange={onChange}
+                    disabled={mode === 'view'}
+                    placeholder="Enter first name"
+                    className={`pl-10 w-full rounded-lg border ${
+                      mode === 'view' 
+                        ? 'bg-gray-50 text-gray-500' 
+                        : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                    } border-gray-300 shadow-sm p-2.5 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    required
+                  />
                 </div>
-                <input
-                  type="text"
-                  name="name"
-                  value={currentStudent.name || ''}
-                  onChange={onChange}
-                  disabled={mode === 'view'}
-                  placeholder="Enter full name"
-                  className={`pl-10 w-full rounded-lg border ${
-                    mode === 'view' 
-                      ? 'bg-gray-50 text-gray-500' 
-                      : 'bg-white hover:border-gray-400 focus:border-blue-500'
-                  } border-gray-300 shadow-sm p-2.5 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  required
-                />
+              </div>
+
+              {/* Last Name Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Last Name
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fas fa-user text-gray-400"></i>
+                  </div>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={currentStudent.lastName || ''}
+                    onChange={onChange}
+                    disabled={mode === 'view'}
+                    placeholder="Enter last name"
+                    className={`pl-10 w-full rounded-lg border ${
+                      mode === 'view' 
+                        ? 'bg-gray-50 text-gray-500' 
+                        : 'bg-white hover:border-gray-400 focus:border-blue-500'
+                    } border-gray-300 shadow-sm p-2.5 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -332,7 +363,7 @@ const StudentModal = ({
                 <p className="text-sm text-red-500">No courses found for this department</p>
               )}
             </div>
-            
+
             {/* Class Field */}
             <div className="grid grid-cols-1 gap-2">
               <label className="block text-sm font-semibold text-gray-700">
@@ -453,7 +484,8 @@ StudentModal.propTypes = {
   currentStudent: PropTypes.shape({
     id: PropTypes.string,
     studentId: PropTypes.string,
-    name: PropTypes.string,
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
     email: PropTypes.string,
     department: PropTypes.string,
     course: PropTypes.string,
@@ -463,6 +495,20 @@ StudentModal.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   loading: PropTypes.bool
+};
+
+StudentModal.defaultProps = {
+  currentStudent: {
+    studentId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    department: '',
+    course: '',
+    class: '',
+    rfidTag: ''
+  },
+  loading: false
 };
 
 export default StudentModal;
