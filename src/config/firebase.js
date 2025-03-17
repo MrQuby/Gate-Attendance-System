@@ -3,13 +3,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC_HMWFzpBME7PtTwqDaXOG3BHq0DRY1m0",
-  authDomain: "rfid-attendance-system-9510e.firebaseapp.com",
-  projectId: "rfid-attendance-system-9510e",
-  storageBucket: "rfid-attendance-system-9510e.firebasestorage.app",
-  messagingSenderId: "745646084466",
-  appId: "1:745646084466:web:b2a418da7356198f6d4deb",
-  measurementId: "G-R1BXJRVHBC"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
