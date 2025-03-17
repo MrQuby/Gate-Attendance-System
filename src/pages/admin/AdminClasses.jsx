@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getClasses, addClass, updateClass, deleteClass, restoreClass, subscribeToClasses } from '../../api/classes';
 import { getDepartments } from '../../api/departments';
 import { getCourses } from '../../api/courses';
+import { getStudentsByClass, subscribeToStudentsByClass } from '../../api/students';
 import ClassModal from '../../components/modals/ClassModal';
 import DeleteConfirmationModal from '../../components/modals/DeleteConfirmationModal';
 import AdminSidebar from '../../components/layout/AdminSidebar';
@@ -28,11 +29,22 @@ const AdminClasses = () => {
   const [itemsPerPage] = useState(10);
   const [departmentMap, setDepartmentMap] = useState({});
   const [courseMap, setCourseMap] = useState({});
+  const [enrollmentCounts, setEnrollmentCounts] = useState({});
 
   useEffect(() => {
     // Set up real-time listener for classes
     const unsubscribe = subscribeToClasses((updatedClasses) => {
       setClasses(updatedClasses);
+      
+      // Set up enrollment count listeners for each class
+      updatedClasses.forEach(classItem => {
+        subscribeToStudentsByClass(classItem.id, (students) => {
+          setEnrollmentCounts(prev => ({
+            ...prev,
+            [classItem.id]: students.length
+          }));
+        });
+      });
     });
 
     // Fetch departments and courses for display
@@ -149,6 +161,12 @@ const AdminClasses = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Calculate remaining capacity
+  const getRemainingCapacity = (classId, totalCapacity) => {
+    const enrolled = enrollmentCounts[classId] || 0;
+    return totalCapacity - enrolled;
+  };
+
   // Reset to first page when search query changes
   useEffect(() => {
     setCurrentPage(1);
@@ -263,7 +281,12 @@ const AdminClasses = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                      <div className="text-sm">{classItem.capacity}</div>
+                      <div className="text-sm">
+                        <span className={`font-medium ${getRemainingCapacity(classItem.id, classItem.capacity) <= 5 ? 'text-amber-600' : ''} ${getRemainingCapacity(classItem.id, classItem.capacity) <= 0 ? 'text-red-600' : ''}`}>
+                          {getRemainingCapacity(classItem.id, classItem.capacity)}
+                        </span>
+                        <span className="text-gray-500"> / {classItem.capacity}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2 justify-center">
@@ -318,24 +341,28 @@ const AdminClasses = () => {
               totalItems={totalItems}
             />
           )}
-
-          <ClassModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            mode={modalMode}
-            currentClass={currentClass}
-            onSubmit={handleSubmit}
-            onChange={handleInputChange}
-          />
         </div>
       </div>
 
+      {/* Class Modal */}
+      <ClassModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        mode={modalMode}
+        currentClass={currentClass}
+        onSubmit={handleSubmit}
+        onChange={handleInputChange}
+        departments={departmentMap}
+        courses={courseMap}
+      />
+
+      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDelete}
         title="Archive Class"
-        message={`Are you sure you want to archive the class '${classToDelete?.name}'? The class will be hidden but can be restored later.`}
+        message={`Are you sure you want to archive ${classToDelete?.name}? This class will be hidden from the system but can be restored later.`}
       />
     </div>
   );
