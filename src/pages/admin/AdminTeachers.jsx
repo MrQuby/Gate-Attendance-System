@@ -254,26 +254,23 @@ const AdminTeachers = () => {
               </button>
             </div>
           </div>
-          <main className="w-full mt-4">
+          <main className="w-full mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Teacher ID
+                    Teacher
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Department
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Classes
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
@@ -284,24 +281,21 @@ const AdminTeachers = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentTeachers.map((teacher, index) => (
                   <tr key={teacher.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium hidden sm:table-cell">
                       {indexOfFirstTeacher + index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">{teacher.teacherId}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm">{teacher.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                       <div className="text-sm">{teacher.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       <div className="text-sm">
                         {departmentMap[teacher.department] || '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       <div className="text-sm">
                         {getClassesDisplay(teacher.classes)}
                       </div>
@@ -335,7 +329,7 @@ const AdminTeachers = () => {
                 ))}
                 {currentTeachers.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                       No teachers found
                     </td>
                   </tr>
@@ -343,7 +337,7 @@ const AdminTeachers = () => {
               </tbody>
               <tfoot>
                 <tr className="border-t border-gray-200">
-                  <td colSpan="7" className="px-6 py-2"></td>
+                  <td colSpan="6" className="px-6 py-2"></td>
                 </tr>
               </tfoot>
             </table>

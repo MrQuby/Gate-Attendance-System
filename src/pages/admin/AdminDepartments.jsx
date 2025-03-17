@@ -163,20 +163,20 @@ const AdminDepartments = () => {
               </button>
             </div>
           </div>
-          <main className="w-full mt-4">
+          <main className="w-full mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Department Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Description
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
@@ -190,39 +190,46 @@ const AdminDepartments = () => {
                     key={department.id} 
                     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium hidden sm:table-cell">
                       {indexOfFirstItem + index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">
+                      <div className="text-sm font-medium text-gray-900">
                         {department.name}
+                      </div>
+                      <div className="text-xs text-gray-500 md:hidden">
+                        {department.code}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <div className="text-sm">
+                        {department.code}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+                      <div className="text-sm">
+                        {department.description}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">{department.code}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm line-clamp-2">{department.description}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex items-center gap-2 justify-center">
                         <button
-                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenModal('view', department)}
-                          title="View Details"
+                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
+                          title="View"
                         >
                           <i className="fas fa-eye"></i>
                         </button>
                         <button
-                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenModal('edit', department)}
+                          className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           title="Edit"
                         >
                           <i className="fas fa-edit"></i>
                         </button>
                         <button
-                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenDeleteModal(department)}
+                          className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1 rounded-lg transition duration-200"
                           title="Archive"
                         >
                           <i className="fas fa-archive"></i>
@@ -231,7 +238,7 @@ const AdminDepartments = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredDepartments.length === 0 && (
+                {currentItems.length === 0 && (
                   <tr>
                     <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                       No departments found
@@ -241,7 +248,7 @@ const AdminDepartments = () => {
               </tbody>
               <tfoot>
                 <tr className="border-t border-gray-200">
-                  <td colSpan="4" className="px-6 py-2"></td>
+                  <td colSpan="5" className="px-6 py-2"></td>
                 </tr>
               </tfoot>
             </table>
