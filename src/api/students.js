@@ -57,21 +57,10 @@ export const subscribeToStudents = (onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => {
-        const data = doc.data();
-        
-        // Handle legacy data that might have 'name' instead of firstName/lastName
-        if (data.name && (!data.firstName || !data.lastName)) {
-          const nameParts = data.name.split(' ');
-          data.firstName = nameParts[0] || '';
-          data.lastName = nameParts.slice(1).join(' ') || '';
-        }
-        
-        return {
-          id: doc.id,
-          ...data
-        };
-      });
+      const students = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       console.log('Received students update:', students);
       onUpdate(students);
     }, (error) => {
@@ -224,21 +213,10 @@ export const subscribeToStudentsByDepartment = (department, onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => {
-        const data = doc.data();
-        
-        // Handle legacy data that might have 'name' instead of firstName/lastName
-        if (data.name && (!data.firstName || !data.lastName)) {
-          const nameParts = data.name.split(' ');
-          data.firstName = nameParts[0] || '';
-          data.lastName = nameParts.slice(1).join(' ') || '';
-        }
-        
-        return {
-          id: doc.id,
-          ...data
-        };
-      });
+      const students = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       onUpdate(students);
     });
   } catch (error) {
@@ -262,21 +240,10 @@ export const subscribeToStudentsByCourse = (course, onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => {
-        const data = doc.data();
-        
-        // Handle legacy data that might have 'name' instead of firstName/lastName
-        if (data.name && (!data.firstName || !data.lastName)) {
-          const nameParts = data.name.split(' ');
-          data.firstName = nameParts[0] || '';
-          data.lastName = nameParts.slice(1).join(' ') || '';
-        }
-        
-        return {
-          id: doc.id,
-          ...data
-        };
-      });
+      const students = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       onUpdate(students);
     });
   } catch (error) {
@@ -298,21 +265,10 @@ export const getStudentsByClass = async (classId) => {
       where('class', '==', classId)
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      
-      // Handle legacy data that might have 'name' instead of firstName/lastName
-      if (data.name && (!data.firstName || !data.lastName)) {
-        const nameParts = data.name.split(' ');
-        data.firstName = nameParts[0] || '';
-        data.lastName = nameParts.slice(1).join(' ') || '';
-      }
-      
-      return {
-        id: doc.id,
-        ...data
-      };
-    });
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
     console.error('Error fetching students by class:', error);
     throw error;
@@ -334,21 +290,10 @@ export const subscribeToStudentsByClass = (classId, onUpdate) => {
     );
 
     return onSnapshot(q, (snapshot) => {
-      const students = snapshot.docs.map(doc => {
-        const data = doc.data();
-        
-        // Handle legacy data that might have 'name' instead of firstName/lastName
-        if (data.name && (!data.firstName || !data.lastName)) {
-          const nameParts = data.name.split(' ');
-          data.firstName = nameParts[0] || '';
-          data.lastName = nameParts.slice(1).join(' ') || '';
-        }
-        
-        return {
-          id: doc.id,
-          ...data
-        };
-      });
+      const students = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       onUpdate(students);
     });
   } catch (error) {
