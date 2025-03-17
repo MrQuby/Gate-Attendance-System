@@ -20,7 +20,8 @@ const AdminTeachers = () => {
   const [modalMode, setModalMode] = useState('add'); // 'add', 'edit', 'view'
   const [currentTeacher, setCurrentTeacher] = useState({
     teacherId: '',
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     department: '',
     courses: [],
@@ -96,7 +97,8 @@ const AdminTeachers = () => {
     setModalMode(mode);
     setCurrentTeacher(teacher || {
       teacherId: '',
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       department: '',
       courses: [],
@@ -122,10 +124,7 @@ const AdminTeachers = () => {
     
     try {
       if (modalMode === 'add') {
-        await addTeacher({
-          ...currentTeacher,
-          isActive: true
-        });
+        await addTeacher(currentTeacher);
         toast.success('Teacher added successfully');
       } else if (modalMode === 'edit') {
         await updateTeacher(currentTeacher.id, currentTeacher);
@@ -144,55 +143,39 @@ const AdminTeachers = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleCloseDeleteModal = () => {
-    setDeleteModalOpen(false);
-    setTeacherToDelete(null);
-  };
-
-  const handleDeleteTeacher = async () => {
+  const handleDelete = async () => {
     if (!teacherToDelete) return;
     
     try {
       await deleteTeacher(teacherToDelete.id);
       toast.success('Teacher archived successfully');
-      handleCloseDeleteModal();
+      setDeleteModalOpen(false);
+      setTeacherToDelete(null);
     } catch (error) {
       console.error('Error archiving teacher:', error);
       toast.error('Failed to archive teacher');
     }
   };
 
-  const handleResetSearch = () => {
-    setSearchQuery('');
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setTeacherToDelete(null);
   };
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher => {
+    const fullName = `${teacher.firstName} ${teacher.lastName}`.toLowerCase();
     const searchTerm = searchQuery.toLowerCase();
-    const departmentName = departmentMap[teacher.department] || '';
-    
-    // Get class names for this teacher
-    const teacherClassNames = (teacher.classes || [])
-      .map(classId => {
-        const classItem = classMap[classId];
-        const course = courseMap[classItem?.courseId];
-        if (classItem && course) {
-          return `${course.code} ${classItem.name}`;
-        }
-        return '';
-      })
-      .join(' ');
     
     return (
-      teacher.name.toLowerCase().includes(searchTerm) ||
-      teacher.email.toLowerCase().includes(searchTerm) ||
-      teacher.teacherId.toLowerCase().includes(searchTerm) ||
-      departmentName.toLowerCase().includes(searchTerm) ||
-      teacherClassNames.toLowerCase().includes(searchTerm)
+      fullName.includes(searchTerm) ||
+      (teacher.teacherId && teacher.teacherId.toLowerCase().includes(searchTerm)) ||
+      (teacher.email && teacher.email.toLowerCase().includes(searchTerm)) ||
+      (departmentMap[teacher.department] && departmentMap[teacher.department].toLowerCase().includes(searchTerm))
     );
   });
 
-  // Pagination
+  // Pagination logic
   const indexOfLastTeacher = currentPage * itemsPerPage;
   const indexOfFirstTeacher = indexOfLastTeacher - itemsPerPage;
   const currentTeachers = filteredTeachers.slice(indexOfFirstTeacher, indexOfLastTeacher);
@@ -222,6 +205,27 @@ const AdminTeachers = () => {
       })
       .filter(name => name)
       .join(', ');
+  };
+
+  // Helper function to get profile initials
+  const getProfileInitials = (firstName, lastName) => {
+    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return firstInitial + lastInitial;
+  };
+
+  // Helper function to get background color based on name
+  const getProfileColor = (firstName, lastName) => {
+    const colors = [
+      'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 
+      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    
+    const fullName = `${firstName}${lastName}`;
+    if (!fullName) return colors[0];
+    
+    const charCodeSum = fullName.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return colors[charCodeSum % colors.length];
   };
 
   return (
@@ -265,6 +269,9 @@ const AdminTeachers = () => {
                     Teacher
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    Teacher ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
@@ -285,10 +292,25 @@ const AdminTeachers = () => {
                       {indexOfFirstTeacher + index + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">{teacher.name}</div>
+                      <div className="flex items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(teacher.firstName, teacher.lastName)}`}>
+                          {getProfileInitials(teacher.firstName, teacher.lastName)}
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">
+                            {teacher.firstName} {teacher.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500 md:hidden">
+                            {teacher.teacherId}
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
-                      <div className="text-sm">{teacher.email}</div>
+                      {teacher.teacherId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
+                      {teacher.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell">
                       <div className="text-sm">
@@ -300,12 +322,12 @@ const AdminTeachers = () => {
                         {getClassesDisplay(teacher.classes)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex items-center gap-2 justify-end">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 justify-center">
                         <button
                           className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg transition duration-200"
                           onClick={() => handleOpenModal('view', teacher)}
-                          title="View Details"
+                          title="View"
                         >
                           <i className="fas fa-eye"></i>
                         </button>
@@ -329,7 +351,7 @@ const AdminTeachers = () => {
                 ))}
                 {currentTeachers.length === 0 && (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                       No teachers found
                     </td>
                   </tr>
@@ -337,7 +359,7 @@ const AdminTeachers = () => {
               </tbody>
               <tfoot>
                 <tr className="border-t border-gray-200">
-                  <td colSpan="6" className="px-6 py-2"></td>
+                  <td colSpan="7" className="px-6 py-2"></td>
                 </tr>
               </tfoot>
             </table>
@@ -370,10 +392,10 @@ const AdminTeachers = () => {
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleDeleteTeacher}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDelete}
         title="Archive Teacher"
-        message={`Are you sure you want to archive ${teacherToDelete?.name}? This teacher will be hidden from the system but can be restored later.`}
+        message={`Are you sure you want to archive ${teacherToDelete?.firstName} ${teacherToDelete?.lastName}? This teacher will be hidden from the system but can be restored later.`}
       />
     </div>
   );

@@ -18,7 +18,8 @@ const COLLECTION_NAME = 'teachers';
  * @typedef {Object} Teacher
  * @property {string} id - The unique identifier
  * @property {string} teacherId - The teacher's ID number
- * @property {string} name - The teacher's full name
+ * @property {string} firstName - The teacher's first name
+ * @property {string} lastName - The teacher's last name
  * @property {string} email - The teacher's email address
  * @property {string} department - The department ID this teacher belongs to
  * @property {string[]} courses - Array of course IDs this teacher handles
@@ -49,17 +50,22 @@ export const getTeachers = async () => {
 /**
  * Creates a new teacher record
  * @param {Omit<Teacher, 'id'|'createdAt'|'updatedAt'|'isActive'>} teacherData - The teacher data
- * @returns {Promise<string>} The ID of the created teacher record
+ * @returns {Promise<Teacher>} The created teacher record
  */
 export const addTeacher = async (teacherData) => {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    const dataToSave = {
       ...teacherData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       isActive: true
-    });
-    return docRef.id;
+    };
+    
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), dataToSave);
+    return {
+      id: docRef.id,
+      ...dataToSave
+    };
   } catch (error) {
     console.error('Error adding teacher:', error);
     throw error;
@@ -74,8 +80,8 @@ export const addTeacher = async (teacherData) => {
  */
 export const updateTeacher = async (id, teacherData) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
+    const teacherRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(teacherRef, {
       ...teacherData,
       updatedAt: serverTimestamp()
     });
@@ -92,8 +98,8 @@ export const updateTeacher = async (id, teacherData) => {
  */
 export const deleteTeacher = async (id) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
+    const teacherRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(teacherRef, {
       isActive: false,
       updatedAt: serverTimestamp()
     });
@@ -110,20 +116,18 @@ export const deleteTeacher = async (id) => {
  */
 export const subscribeToTeachers = (callback) => {
   try {
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where('isActive', '==', true)
-    );
-
+    const q = query(collection(db, COLLECTION_NAME), where('isActive', '==', true));
+    
     return onSnapshot(q, (snapshot) => {
       const teachers = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+      
       callback(teachers);
     });
   } catch (error) {
-    console.error('Error subscribing to teachers:', error);
+    console.error('Error setting up teachers subscription:', error);
     throw error;
   }
 };
