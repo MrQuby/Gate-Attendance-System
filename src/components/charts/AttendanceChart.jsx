@@ -84,11 +84,11 @@ const AttendanceChart = () => {
       <div className="flex items-center justify-start gap-6 mb-4 ml-2">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-[#FAE27C]"></div>
-          <span className="text-xs text-gray-400">present</span>
+          <span className="text-xs text-gray-400">IN</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-[#C3EBFA]"></div>
-          <span className="text-xs text-gray-400">absent</span>
+          <span className="text-xs text-gray-400">OUT</span>
         </div>
       </div>
     );

@@ -13,27 +13,32 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = () => {
     if (userData?.role === 'admin') {
       navigate('/admin/dashboard');
     } else if (userData?.role === 'teacher') {
-      navigate('/dashboard');
+      navigate('/teacher/dashboard');
+    } else if (userData?.role === 'departmentHead') {
+      navigate('/head/dashboard');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       // First, query Firestore to find the user with the given ID number
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('idNumber', '==', idNumber));
+      const q = query(usersRef, where('idNumber', '==', idNumber), where('isActive', '==', true));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
         setError('No user found with this ID number');
+        setIsLoading(false);
         return;
       }
 
@@ -65,14 +70,16 @@ const Login = () => {
       } else {
         setError('An error occurred during login. Please try again.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full flex bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Left side - Form */}
-        <div className="w-full md:w-3/4 px-8 py-12">
+        <div className="w-full md:w-3/4 px-8 py-8">
           <div className="text-center">
             <div className="flex justify-center text-blue-600">
               <i className="fas fa-graduation-cap text-4xl"></i>
@@ -125,69 +132,88 @@ const Login = () => {
                   className="appearance-none rounded-lg relative block w-full pl-10 pr-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Enter your password"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 z-10"
-                >
-                  <i className={`fas ${showPassword ? 'fa-eye' : 'fa-eye-slash'} h-4 w-5`}></i>
-                </button>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-blue-500 focus:outline-none"
+                  >
+                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Show any error messages */}
+            {/* Error message */}
             {error && (
-              <div className="text-red-500 text-sm mt-2 text-center">
+              <div className="text-sm text-red-600">
+                <i className="fas fa-exclamation-circle mr-1"></i>
                 {error}
               </div>
             )}
 
+            {/* Forgot Password Link */}
             <div className="text-right">
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-500">
-                Forgot Password?
-              </a>
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+                Forgot password?
+              </Link>
             </div>
 
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex items-center justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <i className="fas fa-sign-in-alt mr-2"></i>
-                SIGN IN
+                {isLoading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-sign-in-alt mr-2"></i>
+                    Login
+                  </>
+                )}
               </button>
             </div>
-          </form>
 
-          <p className="mt-4 text-center text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign up
-            </Link>
-          </p>
+            {/* Sign Up Link */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{' '}
+                <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+                  Sign up here
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
 
-        {/* Right side - Blue section */}
-        <div className="hidden md:block w-1/2 bg-blue-600 px-8 py-12">
-          <div className="h-full flex flex-col justify-center items-center text-white">
-            <h2 className="text-4xl font-bold mb-4">Welcome Back!</h2>
-            <p className="text-center text-lg">
-              Sign in to access the Attendance Monitoring System
+        {/* Right side - Image */}
+        <div className="hidden md:block md:w-1/2 bg-blue-600">
+          <div className="h-full flex flex-col justify-center items-center text-white p-8">
+            <i className="fas fa-user-graduate text-6xl mb-4"></i>
+            <h3 className="text-xl font-bold mb-2">Welcome Back!</h3>
+            <p className="text-sm text-center">
+              Login to access the RFID Attendance System.
             </p>
-            <div className="mt-8">
-              <i className="fas fa-clipboard-check text-6xl text-white/60"></i>
-            </div>
           </div>
         </div>
       </div>
 
-      <SuccessModal
-        isOpen={showSuccessModal}
-        title="Login Success"
-        message={`Welcome back, ${userData?.role?.toUpperCase() || 'USER'} !`}
-        onContinue={handleContinue}
-        autoCloseTime={3}
-      />
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <SuccessModal
+          isOpen={showSuccessModal}
+          title="Login Successful"
+          message={`Welcome back, ${userData?.firstName || 'User'}!`}
+          onContinue={handleContinue}
+          autoCloseTime={2}
+        />
+      )}
     </div>
   );
 };

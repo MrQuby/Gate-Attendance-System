@@ -12,7 +12,8 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 
-const COLLECTION_NAME = 'teachers';
+// Use the users collection instead of teachers
+const COLLECTION_NAME = 'users';
 
 /**
  * @typedef {Object} Teacher
@@ -35,12 +36,23 @@ const COLLECTION_NAME = 'teachers';
  */
 export const getTeachers = async () => {
   try {
-    const q = query(collection(db, COLLECTION_NAME), where('isActive', '==', true));
+    // Query users with role 'teacher' and isActive true
+    const q = query(
+      collection(db, COLLECTION_NAME), 
+      where('role', '==', 'teacher'),
+      where('isActive', '==', true)
+    );
+    
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      // Map idNumber to teacherId for backward compatibility
+      return {
+        id: doc.id,
+        ...data,
+        teacherId: data.idNumber || data.teacherId
+      };
+    });
   } catch (error) {
     console.error('Error getting teachers:', error);
     throw error;
@@ -56,6 +68,8 @@ export const addTeacher = async (teacherData) => {
   try {
     const dataToSave = {
       ...teacherData,
+      role: 'teacher', // Set role to 'teacher'
+      idNumber: teacherData.teacherId, // Map teacherId to idNumber
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       isActive: true
@@ -64,7 +78,8 @@ export const addTeacher = async (teacherData) => {
     const docRef = await addDoc(collection(db, COLLECTION_NAME), dataToSave);
     return {
       id: docRef.id,
-      ...dataToSave
+      ...dataToSave,
+      teacherId: dataToSave.idNumber // Ensure teacherId is returned for backward compatibility
     };
   } catch (error) {
     console.error('Error adding teacher:', error);
@@ -80,11 +95,19 @@ export const addTeacher = async (teacherData) => {
  */
 export const updateTeacher = async (id, teacherData) => {
   try {
+    const updateData = { ...teacherData };
+    
+    // Map teacherId to idNumber if present
+    if (updateData.teacherId) {
+      updateData.idNumber = updateData.teacherId;
+    }
+    
+    // Ensure role is teacher
+    updateData.role = 'teacher';
+    updateData.updatedAt = serverTimestamp();
+    
     const teacherRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(teacherRef, {
-      ...teacherData,
-      updatedAt: serverTimestamp()
-    });
+    await updateDoc(teacherRef, updateData);
   } catch (error) {
     console.error('Error updating teacher:', error);
     throw error;
@@ -116,13 +139,23 @@ export const deleteTeacher = async (id) => {
  */
 export const subscribeToTeachers = (callback) => {
   try {
-    const q = query(collection(db, COLLECTION_NAME), where('isActive', '==', true));
+    // Query users with role 'teacher' and isActive true
+    const q = query(
+      collection(db, COLLECTION_NAME), 
+      where('role', '==', 'teacher'),
+      where('isActive', '==', true)
+    );
     
     return onSnapshot(q, (snapshot) => {
-      const teachers = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const teachers = snapshot.docs.map(doc => {
+        const data = doc.data();
+        // Map idNumber to teacherId for backward compatibility
+        return {
+          id: doc.id,
+          ...data,
+          teacherId: data.idNumber || data.teacherId
+        };
+      });
       
       callback(teachers);
     });

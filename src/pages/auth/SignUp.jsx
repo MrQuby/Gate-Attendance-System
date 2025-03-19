@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../config/firebase';
+import { toast } from 'react-toastify';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../config/firebase';
+import { db } from '../../config/firebase';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,10 +33,12 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -45,16 +50,32 @@ const SignUp = () => {
         formData.password
       );
 
-      // Store additional user data in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      // Store user data in Firestore using our API
+      const userData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         idNumber: formData.idNumber,
         email: formData.email,
         role: formData.role,
-        createdAt: new Date().toISOString()
-      });
+        uid: userCredential.user.uid,
+        createdAt: new Date().toISOString(),
+        isActive: true
+      };
 
+      // Add role-specific fields
+      if (formData.role === 'teacher' || formData.role === 'departmentHead') {
+        userData.department = '';
+      }
+      
+      if (formData.role === 'teacher') {
+        userData.classes = [];
+      }
+
+      // Store additional user data in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), userData);
+
+      toast.success('Account created successfully!');
+      
       // Navigate to login page after successful registration
       navigate('/login');
     } catch (error) {
@@ -68,6 +89,8 @@ const SignUp = () => {
       } else {
         setError('An error occurred during registration. Please try again.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -193,7 +216,7 @@ const SignUp = () => {
                   className="appearance-none rounded-lg relative block w-full pl-3 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
                   <option value="teacher">Teacher</option>
-                  <option value="student">Student</option>
+                  <option value="departmentHead">Department Head</option>
                 </select>
               </div>
             </div>
