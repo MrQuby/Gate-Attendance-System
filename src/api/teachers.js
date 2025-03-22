@@ -9,7 +9,8 @@ import {
   onSnapshot,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  getDoc
 } from 'firebase/firestore';
 
 // Use the users collection instead of teachers
@@ -128,6 +129,27 @@ export const deleteTeacher = async (id) => {
     });
   } catch (error) {
     console.error('Error deleting teacher:', error);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves the classes assigned to a specific teacher
+ * @param {string} teacherId - The teacher's ID
+ * @returns {Promise<string[]>} Array of class IDs assigned to the teacher
+ */
+export const getTeacherClasses = async (teacherId) => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, teacherId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return data.classes || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error getting teacher classes:', error);
     throw error;
   }
 };

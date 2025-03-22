@@ -4,8 +4,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
-import Dashboard from './pages/teacher/Dashboard';
-import Students from './pages/teacher/Students';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherStudents from './pages/teacher/TeacherStudents';
 import StudentDetails from './pages/teacher/StudentDetails';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminStudents from './pages/admin/AdminStudents';
@@ -23,23 +23,23 @@ function App() {
       <Routes>
         {/* Teacher Routes */}
         <Route 
-          path="/dashboard" 
+          path="/teacher/dashboard" 
           element={
             <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
-              <Dashboard />
+              <TeacherDashboard />
             </ProtectedRoute>
           }
         />
         <Route 
-          path="/students" 
+          path="/teacher/students" 
           element={
             <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
-              <Students />
+              <TeacherStudents />
             </ProtectedRoute>
           }
         />
         <Route 
-          path="/student-details" 
+          path="/teacher/student-details" 
           element={
             <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
               <StudentDetails />
