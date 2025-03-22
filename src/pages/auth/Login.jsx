@@ -15,16 +15,6 @@ const Login = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
-    if (userData?.role === 'admin') {
-      navigate('/admin/dashboard');
-    } else if (userData?.role === 'teacher') {
-      navigate('/teacher/dashboard');
-    } else if (userData?.role === 'departmentHead') {
-      navigate('/head/dashboard');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -210,7 +200,16 @@ const Login = () => {
           isOpen={showSuccessModal}
           title="Login Successful"
           message={`Welcome back, ${userData?.firstName || 'User'}!`}
-          onContinue={handleContinue}
+          onContinue={() => {
+            setShowSuccessModal(false);
+            if (userData?.role === 'admin') {
+              navigate('/admin/dashboard', { replace: true });
+            } else if (userData?.role === 'teacher') {
+              navigate('/teacher/dashboard', { replace: true });
+            } else if (userData?.role === 'departmentHead') {
+              navigate('/head/dashboard', { replace: true });
+            }
+          }}
           autoCloseTime={2}
         />
       )}

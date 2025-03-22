@@ -1,10 +1,34 @@
-import React, { useState } from 'react';
-import { auth } from '../../config/firebase';
+import React, { useState, useEffect } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '../../config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AdminHeader = ({ title }) => {
+  const [user, loading] = useAuthState(auth);
+  const [userData, setUserData] = React.useState(null);
   const [notificationCount, setNotificationCount] = useState(3);
-  const user = auth.currentUser;
-  const displayName = user ? user.displayName || 'Admin User' : 'Admin User';
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setUserData(userData);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  const displayName = userData ? `${userData.firstName} ${userData.lastName}` : 'Admin User';
 
   return (
     <header className="flex items-center justify-between p-4">

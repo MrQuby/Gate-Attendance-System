@@ -13,6 +13,7 @@ import AdminTeachers from './pages/admin/AdminTeachers';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminClasses from './pages/admin/AdminClasses';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -21,17 +22,80 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         {/* Teacher Routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/students" element={<Students />} />
-        <Route path="/student-details" element={<StudentDetails />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/students" 
+          element={
+            <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
+              <Students />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/student-details" 
+          element={
+            <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
+              <StudentDetails />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Admin Routes */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/students" element={<AdminStudents />} />
-        <Route path="/admin/teachers" element={<AdminTeachers />} />
-        <Route path="/admin/departments" element={<AdminDepartments />} />
-        <Route path="/admin/courses" element={<AdminCourses />} />
-        <Route path="/admin/classes" element={<AdminClasses />} />
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/admin/students" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminStudents />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/admin/teachers" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTeachers />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/admin/departments" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDepartments />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/admin/courses" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminCourses />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/admin/classes" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminClasses />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
