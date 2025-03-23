@@ -189,10 +189,10 @@ const TeacherModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 max-w-lg w-full mx-2">
-        {/* Modal Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-auto flex flex-col max-h-[90vh]">
+        {/* Modal Header - Fixed at top */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
           <div>
             <h3 className="text-xl font-bold text-blue-900">
               {mode === 'add' ? 'Add New Teacher' : mode === 'edit' ? 'Edit Teacher' : 'View Teacher'}
@@ -209,336 +209,340 @@ const TeacherModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4">
-          <div className="space-y-4">
-            {/* Profile Image */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Profile Image
-              </label>
-              <div className="flex items-center space-x-4">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-300">
-                  {imagePreview ? (
-                    <img 
-                      src={imagePreview} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <i className="fas fa-user text-gray-400 text-4xl"></i>
-                  )}
-                </div>
-                
-                <div className="flex flex-col space-y-2">
-                  {mode !== 'view' && (
-                    <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        ref={fileInputRef}
-                        disabled={uploadingImage}
+        {/* Scrollable Content Area */}
+        <div className="overflow-y-auto p-4 sm:p-6 flex-grow">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+              {/* Profile Image */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Profile Image
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-300">
+                    {imagePreview ? (
+                      <img 
+                        src={imagePreview} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
                       />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current.click()}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
-                          hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
-                          transition-colors flex items-center"
-                        disabled={uploadingImage}
-                      >
-                        <i className="fas fa-upload mr-2"></i>
-                        Select Image
-                      </button>
-                      
-                      {imageFile && (
+                    ) : (
+                      <i className="fas fa-user text-gray-400 text-4xl"></i>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col space-y-2">
+                    {mode !== 'view' && (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                          ref={fileInputRef}
+                          disabled={uploadingImage}
+                        />
                         <button
                           type="button"
-                          onClick={handleImageDelete}
-                          className="px-3 py-1.5 bg-red-600 text-white rounded-lg shadow-sm text-sm font-medium
-                            hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 
+                          onClick={() => fileInputRef.current.click()}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
+                            hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
                             transition-colors flex items-center"
                           disabled={uploadingImage}
                         >
-                          <i className="fas fa-trash mr-2"></i>
-                          Remove
+                          <i className="fas fa-upload mr-2"></i>
+                          Select Image
                         </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Teacher ID Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Teacher ID
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-id-card text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  name="teacherId"
-                  value={teacher.teacherId}
-                  onChange={onInputChange}
-                  placeholder="Enter teacher ID"
-                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
-                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                  required
-                  disabled={mode === 'view'}
-                />
-              </div>
-            </div>
-
-            {/* Name Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* First Name Field */}
-              <div className="grid grid-cols-1 gap-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  First Name
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-user text-gray-400"></i>
-                  </div>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={teacher.firstName || ''}
-                    onChange={onInputChange}
-                    placeholder="Enter first name"
-                    className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
-                      bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                    required
-                    disabled={mode === 'view'}
-                  />
-                </div>
-              </div>
-
-              {/* Last Name Field */}
-              <div className="grid grid-cols-1 gap-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Last Name
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i className="fas fa-user text-gray-400"></i>
-                  </div>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={teacher.lastName || ''}
-                    onChange={onInputChange}
-                    placeholder="Enter last name"
-                    className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
-                      bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                    required
-                    disabled={mode === 'view'}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Email
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-envelope text-gray-400"></i>
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  value={teacher.email}
-                  onChange={onInputChange}
-                  placeholder="Enter email address"
-                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
-                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                  required
-                  disabled={mode === 'view'}
-                />
-              </div>
-            </div>
-
-            {/* Department Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Department
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-building text-gray-400"></i>
-                </div>
-                <select
-                  name="department"
-                  value={teacher.department}
-                  onChange={onInputChange}
-                  className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
-                    bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                  required
-                  disabled={mode === 'view'}
-                >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            {/* Courses Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Assigned Courses
-              </label>
-              {loading ? (
-                <div className="flex items-center justify-center p-4 border rounded-lg">
-                  <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
-                  <span>Loading courses...</span>
-                </div>
-              ) : (
-                <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
-                  {courses.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {courses.map(course => {
-                        const isChecked = selectedCourses.includes(course.id);
-                        return (
-                          <div key={course.id} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={`course-${course.id}`}
-                              value={course.id}
-                              checked={isChecked}
-                              onChange={handleCourseChange}
-                              disabled={mode === 'view'}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor={`course-${course.id}`}
-                              className="ml-2 block text-sm text-gray-700"
-                            >
-                              {course.courseId}
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">No courses available</p>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Classes Field */}
-            <div className="grid grid-cols-1 gap-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Assigned Classes
-              </label>
-              {loading ? (
-                <div className="flex items-center justify-center p-4 border rounded-lg">
-                  <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
-                  <span>Loading classes...</span>
-                </div>
-              ) : (
-                <div className="border rounded-lg p-3 max-h-60 overflow-y-auto">
-                  {selectedCourses.length > 0 ? (
-                    <div className="space-y-4">
-                      {selectedCourses.map(courseId => {
-                        const course = courses.find(c => c.id === courseId);
-                        const courseClasses = classesByCourse[courseId] || [];
-                        if (!course || courseClasses.length === 0) return null;
                         
-                        return (
-                          <div key={courseId} className="border-b pb-2 last:border-b-0 last:pb-0">
-                            <h4 className="font-medium text-gray-700 mb-2">{course.courseId}</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {courseClasses.map(classItem => {
-                                const isChecked = selectedClasses.includes(classItem.id);
-                                return (
-                                  <div key={classItem.id} className="flex items-center">
-                                    <input
-                                      type="checkbox"
-                                      id={`class-${classItem.id}`}
-                                      value={classItem.id}
-                                      checked={isChecked}
-                                      onChange={handleClassChange}
-                                      disabled={mode === 'view'}
-                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label
-                                      htmlFor={`class-${classItem.id}`}
-                                      className="ml-2 block text-sm text-gray-700"
-                                    >
-                                      {classItem.name}
-                                    </label>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">Please select courses first to view available classes</p>
-                  )}
+                        {imageFile && (
+                          <button
+                            type="button"
+                            onClick={handleImageDelete}
+                            className="px-3 py-1.5 bg-red-600 text-white rounded-lg shadow-sm text-sm font-medium
+                              hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 
+                              transition-colors flex items-center"
+                            disabled={uploadingImage}
+                          >
+                            <i className="fas fa-trash mr-2"></i>
+                            Remove
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Modal Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
-                  hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
-                  transition-colors"
-              >
-                {mode === 'view' ? 'Close' : 'Cancel'}
-              </button>
-              {mode !== 'view' && (
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
-                    hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
-                    transition-colors"
-                  disabled={uploadingImage}
-                >
-                  {uploadingImage ? (
-                    <>
-                      <i className="fas fa-spinner spin mr-2"></i>
-                      {mode === 'add' ? 'Creating...' : 'Updating...'}
-                    </>
-                  ) : (
-                    mode === 'add' ? 'Create Teacher' : 'Update Teacher'
-                  )}
-                </button>
-              )}
+              {/* Teacher ID Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Teacher ID
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fas fa-id-card text-gray-400"></i>
+                  </div>
+                  <input
+                    type="text"
+                    name="teacherId"
+                    value={teacher.teacherId}
+                    onChange={onInputChange}
+                    placeholder="Enter teacher ID"
+                    className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                      bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    required
+                    disabled={mode === 'view'}
+                  />
+                </div>
+              </div>
+
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* First Name Field */}
+                <div className="grid grid-cols-1 gap-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    First Name
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={teacher.firstName || ''}
+                      onChange={onInputChange}
+                      placeholder="Enter first name"
+                      className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                        bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                      required
+                      disabled={mode === 'view'}
+                    />
+                  </div>
+                </div>
+
+                {/* Last Name Field */}
+                <div className="grid grid-cols-1 gap-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Last Name
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={teacher.lastName || ''}
+                      onChange={onInputChange}
+                      placeholder="Enter last name"
+                      className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                        bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                      required
+                      disabled={mode === 'view'}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Email
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fas fa-envelope text-gray-400"></i>
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={teacher.email}
+                    onChange={onInputChange}
+                    placeholder="Enter email address"
+                    className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                      bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    required
+                    disabled={mode === 'view'}
+                  />
+                </div>
+              </div>
+
+              {/* Department Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Department
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fas fa-building text-gray-400"></i>
+                  </div>
+                  <select
+                    name="department"
+                    value={teacher.department}
+                    onChange={onInputChange}
+                    className="pl-10 w-full rounded-lg border border-gray-300 shadow-sm p-2.5 
+                      bg-white hover:border-gray-400 focus:border-blue-500 transition-colors
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    required
+                    disabled={mode === 'view'}
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              {/* Courses Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Assigned Courses
+                </label>
+                {loading ? (
+                  <div className="flex items-center justify-center p-4 border rounded-lg">
+                    <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
+                    <span>Loading courses...</span>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
+                    {courses.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {courses.map(course => {
+                          const isChecked = selectedCourses.includes(course.id);
+                          return (
+                            <div key={course.id} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`course-${course.id}`}
+                                value={course.id}
+                                checked={isChecked}
+                                onChange={handleCourseChange}
+                                disabled={mode === 'view'}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <label
+                                htmlFor={`course-${course.id}`}
+                                className="ml-2 block text-sm text-gray-700"
+                              >
+                                {course.courseId}
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No courses available</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Classes Field */}
+              <div className="grid grid-cols-1 gap-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Assigned Classes
+                </label>
+                {loading ? (
+                  <div className="flex items-center justify-center p-4 border rounded-lg">
+                    <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
+                    <span>Loading classes...</span>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 max-h-60 overflow-y-auto">
+                    {selectedCourses.length > 0 ? (
+                      <div className="space-y-4">
+                        {selectedCourses.map(courseId => {
+                          const course = courses.find(c => c.id === courseId);
+                          const courseClasses = classesByCourse[courseId] || [];
+                          if (!course || courseClasses.length === 0) return null;
+                          
+                          return (
+                            <div key={courseId} className="border-b pb-2 last:border-b-0 last:pb-0">
+                              <h4 className="font-medium text-gray-700 mb-2">{course.courseId}</h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {courseClasses.map(classItem => {
+                                  const isChecked = selectedClasses.includes(classItem.id);
+                                  return (
+                                    <div key={classItem.id} className="flex items-center">
+                                      <input
+                                        type="checkbox"
+                                        id={`class-${classItem.id}`}
+                                        value={classItem.id}
+                                        checked={isChecked}
+                                        onChange={handleClassChange}
+                                        disabled={mode === 'view'}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                      />
+                                      <label
+                                        htmlFor={`class-${classItem.id}`}
+                                        className="ml-2 block text-sm text-gray-700"
+                                      >
+                                        {classItem.name}
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">Please select courses first to view available classes</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
+          </form>
+        </div>
+
+        {/* Modal Footer - Fixed at bottom */}
+        <div className="p-4 sm:p-6 border-t border-gray-200">
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 
+                hover:bg-gray-200 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
+                transition-colors"
+            >
+              {mode === 'view' ? 'Close' : 'Cancel'}
+            </button>
+            {mode !== 'view' && (
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
+                  hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                  transition-colors"
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? (
+                  <>
+                    <i className="fas fa-spinner spin mr-2"></i>
+                    {mode === 'add' ? 'Creating...' : 'Updating...'}
+                  </>
+                ) : (
+                  mode === 'add' ? 'Create Teacher' : 'Update Teacher'
+                )}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
