@@ -14,6 +14,7 @@ const COLLECTION_NAME = 'students';
  * @property {string} course - Student course ID
  * @property {string} class - Student class ID
  * @property {string} rfidTag - Student RFID tag
+ * @property {string} profileImageURL - Student profile image (stored as base64 data URL)
  * @property {Date} createdAt - When the student record was created
  * @property {Date} updatedAt - When the student record was last updated
  * @property {Date|null} deletedAt - When the student was soft deleted, null if active

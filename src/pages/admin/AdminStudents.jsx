@@ -28,6 +28,7 @@ const AdminStudents = () => {
     course: '',
     class: '',
     rfidTag: '',
+    profileImageURL: null
   });
   const [isLoading, setIsLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -146,6 +147,7 @@ const AdminStudents = () => {
       course: '',
       class: '',
       rfidTag: '',
+      profileImageURL: null
     });
     setIsModalOpen(true);
   };
@@ -161,6 +163,7 @@ const AdminStudents = () => {
       course: '',
       class: '',
       rfidTag: '',
+      profileImageURL: null
     });
   };
 
@@ -299,9 +302,19 @@ const AdminStudents = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(student.firstName, student.lastName)}`}>
-                          {getProfileInitials(student.firstName, student.lastName)}
-                        </div>
+                        {student.profileImageURL ? (
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <img 
+                              src={student.profileImageURL} 
+                              alt={`${student.firstName} ${student.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(student.firstName, student.lastName)}`}>
+                            {getProfileInitials(student.firstName, student.lastName)}
+                          </div>
+                        )}
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
                             {student.firstName} {student.lastName}
