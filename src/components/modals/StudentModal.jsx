@@ -63,15 +63,15 @@ const StudentModal = ({
 
     if (isOpen && currentStudent.department) {
       setCoursesLoading(true);
+      setCourses([]); // Clear existing courses when department changes
       
       // Set up real-time listener for courses in the selected department
       coursesUnsubscribe = subscribeToCoursesByDepartment(
         currentStudent.department,
         (updatedCourses) => {
-          if (updatedCourses) {
-            setCourses(updatedCourses);
-            setCoursesLoading(false);
-          }
+          console.log('Courses received:', updatedCourses); // Debug log
+          setCourses(updatedCourses || []);
+          setCoursesLoading(false);
         }
       );
     } else {
@@ -90,15 +90,15 @@ const StudentModal = ({
 
     if (isOpen && currentStudent.course) {
       setClassesLoading(true);
+      setClasses([]); // Clear existing classes when course changes
       
       // Set up real-time listener for classes in the selected course
       classesUnsubscribe = subscribeToClassesByCourse(
         currentStudent.course,
         (updatedClasses) => {
-          if (updatedClasses) {
-            setClasses(updatedClasses);
-            setClassesLoading(false);
-          }
+          console.log('Classes received:', updatedClasses); // Debug log
+          setClasses(updatedClasses || []);
+          setClassesLoading(false);
         }
       );
     } else {
@@ -464,7 +464,7 @@ const StudentModal = ({
                       <option value="">Select Course</option>
                       {courses.map(course => (
                         <option key={course.id} value={course.id}>
-                          {course.name}
+                          {course.name || course.courseName}
                         </option>
                       ))}
                     </select>

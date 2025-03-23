@@ -6,7 +6,6 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherStudents from './pages/teacher/TeacherStudents';
-import StudentDetails from './pages/teacher/StudentDetails';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminStudents from './pages/admin/AdminStudents';
 import AdminTeachers from './pages/admin/AdminTeachers';
@@ -35,14 +34,6 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
               <TeacherStudents />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/teacher/student-details" 
-          element={
-            <ProtectedRoute allowedRoles={['teacher', 'departmentHead']}>
-              <StudentDetails />
             </ProtectedRoute>
           }
         />

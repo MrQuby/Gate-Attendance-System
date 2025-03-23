@@ -4,13 +4,12 @@ import { auth, db } from '../../config/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 const AdminHeader = ({ title }) => {
-  const [user] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [userData, setUserData] = React.useState(null);
   const [notificationCount, setNotificationCount] = useState(3);
 
   useEffect(() => {
     let unsubscribe = () => {};
-    
     if (user) {
       // Set up real-time listener for user data
       const userRef = doc(db, 'users', user.uid);

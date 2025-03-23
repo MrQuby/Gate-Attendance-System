@@ -275,12 +275,12 @@ const TeacherStudents = () => {
                 value={searchQuery}
                 onChange={setSearchQuery}
               />
-              <button
+              {/* <button
                 onClick={() => handleOpenModal('add')}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-3xl hover:bg-emerald-700 flex items-center gap-2"
               >
                 <i className="fas fa-plus"></i>
-              </button>
+              </button> */}
             </div>
           </div>
           <main className="w-full mt-4 overflow-x-auto">
@@ -321,9 +321,19 @@ const TeacherStudents = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(student.firstName, student.lastName)}`}>
-                          {getProfileInitials(student.firstName, student.lastName)}
-                        </div>
+                        {student.profileImageURL ? (
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <img 
+                              src={student.profileImageURL} 
+                              alt={`${student.firstName} ${student.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(student.firstName, student.lastName)}`}>
+                            {getProfileInitials(student.firstName, student.lastName)}
+                          </div>
+                        )}
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
                             {student.firstName} {student.lastName}
@@ -361,7 +371,7 @@ const TeacherStudents = () => {
                         >
                           <i className="fas fa-eye"></i>
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleOpenModal('edit', student)}
                           className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2.5 py-1 rounded-lg transition duration-200"
                           title="Edit"
@@ -374,7 +384,7 @@ const TeacherStudents = () => {
                           title="Archive"
                         >
                           <i className="fas fa-archive"></i>
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
