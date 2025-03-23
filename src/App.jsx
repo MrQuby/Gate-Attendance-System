@@ -13,7 +13,7 @@ import AdminTeachers from './pages/admin/AdminTeachers';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminClasses from './pages/admin/AdminClasses';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
 
 function App() {
