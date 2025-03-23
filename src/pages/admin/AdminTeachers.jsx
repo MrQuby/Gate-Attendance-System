@@ -25,7 +25,8 @@ const AdminTeachers = () => {
     email: '',
     department: '',
     courses: [],
-    classes: []
+    classes: [],
+    profileImageURL: null
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
@@ -102,7 +103,8 @@ const AdminTeachers = () => {
       email: '',
       department: '',
       courses: [],
-      classes: []
+      classes: [],
+      profileImageURL: null
     });
     setModalOpen(true);
   };
@@ -293,9 +295,17 @@ const AdminTeachers = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(teacher.firstName, teacher.lastName)}`}>
-                          {getProfileInitials(teacher.firstName, teacher.lastName)}
-                        </div>
+                        {teacher.profileImageURL ? (
+                          <img 
+                            src={teacher.profileImageURL} 
+                            alt={`${teacher.firstName} ${teacher.lastName}`}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getProfileColor(teacher.firstName, teacher.lastName)}`}>
+                            {getProfileInitials(teacher.firstName, teacher.lastName)}
+                          </div>
+                        )}
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
                             {teacher.firstName} {teacher.lastName}

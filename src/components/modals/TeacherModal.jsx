@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { getClasses } from '../../api/classes';
 import { getCourses } from '../../api/courses';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const TeacherModal = ({ 
   isOpen, 
@@ -20,12 +18,18 @@ const TeacherModal = ({
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [classesByCourse, setClassesByCourse] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(teacher.profileImageURL || null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
   
   useEffect(() => {
     if (isOpen) {
       fetchData();
+      // Set image preview if teacher has a profile image
+      setImagePreview(teacher.profileImageURL || null);
     }
-  }, [isOpen]);
+  }, [isOpen, teacher.profileImageURL]);
   
   useEffect(() => {
     if (teacher.classes) {
@@ -125,6 +129,63 @@ const TeacherModal = ({
     });
   };
   
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataURL = reader.result;
+        setImagePreview(dataURL);
+        
+        // Automatically update the teacher object with the image data URL
+        onInputChange({
+          target: {
+            name: 'profileImageURL',
+            value: dataURL
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleImageDelete = () => {
+    // Clear the image file and preview
+    setImageFile(null);
+    setImagePreview(null);
+    
+    // Clear the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    // Update the teacher object to remove the image
+    onInputChange({
+      target: {
+        name: 'profileImageURL',
+        value: null
+      }
+    });
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // If there's a new image file and we're in add mode, we'll upload it after the teacher is created
+    const hasNewImage = imageFile !== null;
+    
+    // Call the original onSubmit function
+    await onSubmit(e);
+    
+    // If we're in edit mode and there's a new image, upload it
+    if (mode === 'edit' && hasNewImage) {
+      // No need to upload image as it's already updated in handleImageChange
+    }
+  };
+  
   if (!isOpen) return null;
 
   return (
@@ -148,8 +209,68 @@ const TeacherModal = ({
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-4">
+        <form onSubmit={handleSubmit} className="mt-4">
           <div className="space-y-4">
+            {/* Profile Image */}
+            <div className="grid grid-cols-1 gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Profile Image
+              </label>
+              <div className="flex items-center space-x-4">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-300">
+                  {imagePreview ? (
+                    <img 
+                      src={imagePreview} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <i className="fas fa-user text-gray-400 text-4xl"></i>
+                  )}
+                </div>
+                
+                <div className="flex flex-col space-y-2">
+                  {mode !== 'view' && (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                        ref={fileInputRef}
+                        disabled={uploadingImage}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current.click()}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
+                          hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                          transition-colors flex items-center"
+                        disabled={uploadingImage}
+                      >
+                        <i className="fas fa-upload mr-2"></i>
+                        Select Image
+                      </button>
+                      
+                      {imageFile && (
+                        <button
+                          type="button"
+                          onClick={handleImageDelete}
+                          className="px-3 py-1.5 bg-red-600 text-white rounded-lg shadow-sm text-sm font-medium
+                            hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 
+                            transition-colors flex items-center"
+                          disabled={uploadingImage}
+                        >
+                          <i className="fas fa-trash mr-2"></i>
+                          Remove
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Teacher ID Field */}
             <div className="grid grid-cols-1 gap-2">
               <label className="block text-sm font-semibold text-gray-700">
@@ -290,7 +411,7 @@ const TeacherModal = ({
               </label>
               {loading ? (
                 <div className="flex items-center justify-center p-4 border rounded-lg">
-                  <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                  <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
                   <span>Loading courses...</span>
                 </div>
               ) : (
@@ -334,7 +455,7 @@ const TeacherModal = ({
               </label>
               {loading ? (
                 <div className="flex items-center justify-center p-4 border rounded-lg">
-                  <FontAwesomeIcon icon={faSpinner} spin className="text-blue-500 mr-2" />
+                  <i className="fas fa-spinner spin text-blue-500 mr-2"></i>
                   <span>Loading classes...</span>
                 </div>
               ) : (
@@ -403,8 +524,16 @@ const TeacherModal = ({
                   className="px-6 py-2.5 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium
                     hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
                     transition-colors"
+                  disabled={uploadingImage}
                 >
-                  {mode === 'add' ? 'Create Teacher' : 'Update Teacher'}
+                  {uploadingImage ? (
+                    <>
+                      <i className="fas fa-spinner spin mr-2"></i>
+                      {mode === 'add' ? 'Creating...' : 'Updating...'}
+                    </>
+                  ) : (
+                    mode === 'add' ? 'Create Teacher' : 'Update Teacher'
+                  )}
                 </button>
               )}
             </div>
@@ -427,7 +556,8 @@ TeacherModal.propTypes = {
     email: PropTypes.string,
     department: PropTypes.string,
     courses: PropTypes.arrayOf(PropTypes.string),
-    classes: PropTypes.arrayOf(PropTypes.string)
+    classes: PropTypes.arrayOf(PropTypes.string),
+    profileImageURL: PropTypes.string
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   onInputChange: PropTypes.func.isRequired,

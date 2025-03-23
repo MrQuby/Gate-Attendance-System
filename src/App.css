@@ -12,31 +12,17 @@
   }
 }
 
-/* Custom classes that complement Tailwind */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-in;
+
+/* Spinner animation for loading states use in teacher modal*/
+.fa-spinner.spin {
+  animation: spinner-rotation 1s infinite linear;
 }
 
-/* Custom styles for complex components */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #4B5563 #F3F4F6;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #F3F4F6;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #4B5563;
-  border-radius: 4px;
-}
-
-/* Example of a complex gradient that might be cleaner in CSS than Tailwind */
-.custom-gradient {
-  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+@keyframes spinner-rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
 }
