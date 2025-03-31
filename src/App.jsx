@@ -12,6 +12,7 @@ import AdminTeachers from './pages/admin/AdminTeachers';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminClasses from './pages/admin/AdminClasses';
+import RfidAttendanceMonitor from './pages/attendance/RfidAttendanceMonitor';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
 
@@ -87,6 +88,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
+        {/* Attendance Monitor */}
+        <Route path="/attendance" element={<RfidAttendanceMonitor />} />
         
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
